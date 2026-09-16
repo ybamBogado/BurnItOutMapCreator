@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Editor de Mapas 3D - Burnout Roblox</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js (r128) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        burnout: {
+                            pink: '#e02484',
+                            pinkHover: '#ff389b',
+                            cyan: '#06b6d4',
+                            dark: '#090d16',
+                            panel: '#111827',
+                            border: '#1f2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e02484;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #canvas3DContainer, #canvas3DContainer canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+            touch-action: none;
+        }
+
+        input[type=range] {
+            accent-color: #e02484;
+        }
+
+        .touch-btn {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .touch-btn:active {
+            transform: scale(0.92);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
+
+    <header class="min-h-14 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between px-3 py-2 gap-2 z-20 shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-burnout-pink to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-burnout-pink/30 shrink-0">
+                <i class="fa-solid fa-road text-sm"></i>
+            </div>
+            <div>
+                <h1 class="text-xs sm:text-sm font-black text-white tracking-wide uppercase italic flex items-center gap-1.5">
+                    Burnout Studio
+                    <span class="text-[10px] font-mono px-1.5 py-0.5 bg-burnout-pink/20 text-burnout-pink border border-burnout-pink/30 rounded hidden sm:inline">3D v2.5</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-mono hidden md:block">Diseñador de Circuitos con Gizmos 3D</p>
+            </div>
+        </div>
+
+        <!-- SELECTOR DE MODOS -->
+        <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 overflow-x-auto">
+            <button id="btnModeSelect" onclick="setEditorMode('select')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-burnout-pink text-white shadow-md">
+                <i class="fa-solid fa-pointer text-xs"></i>
+                <span class="hidden sm:inline">Seleccionar</span>
+            </button>
+            <button id="btnModeMove" onclick="setEditorMode('move')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-up-down-left-right text-xs"></i>
+                <span class="hidden sm:inline">Mover 3D</span>
+            </button>
+            <button id="btnModeRotate" onclick="setEditorMode('rotate')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate text-xs"></i>
+                <span class="hidden sm:inline">Rotar 3D (Gizmo)</span>
+            </button>
+            <div class="w-px h-5 bg-slate-800 mx-0.5"></div>
+            <button id="btnModeDrive" onclick="startTestDrive()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 hover:bg-emerald-950/40 border border-emerald-500/30 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-car text-xs"></i>
+                <span class="hidden sm:inline">Probar Pista</span>
+            </button>
+        </div>
+
+        <!-- BOTONES DE ACCIÓN RÁPIDA -->
+        <div class="flex items-center gap-1.5">
+            <button onclick="clearMapPrompt()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Vaciar mapa">
+                <i class="fa-solid fa-trash-can"></i>
+                <span class="hidden lg:inline">Vaciar</span>
+            </button>
+            
+            <button onclick="exportLuauScript()" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold shadow-md shadow-purple-600/20 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-code"></i>
+                <span class="hidden sm:inline">Exportar Luau</span>
+            </button>
+
+            <button onclick="downloadHtmlMap()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Descargar HTML">
+                <i class="fa-solid fa-download"></i>
+                <span class="hidden xl:inline">Descargar HTML</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex relative overflow-hidden">
+
+        <!-- SIDEBAR IZQUIERDO: CATÁLOGO DE ELEMENTOS -->
+        <aside id="leftSidebar" class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-10 relative shrink-0 transition-all duration-300">
+            <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-boxes-stacked text-burnout-pink text-xs"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Catálogo de Piezas</span>
+                </div>
+                <button onclick="toggleLeftSidebar()" class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition" title="Ocultar panel">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <!-- Selector de Categorías -->
+            <div class="flex border-b border-slate-800 bg-slate-950/30 text-xs font-bold text-slate-400">
+                <button onclick="setCategory('roads')" id="tab-roads" class="flex-1 py-2 text-center border-b-2 border-burnout-pink text-white">Vías</button>
+                <button onclick="setCategory('buildings')" id="tab-buildings" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-200">Ciudad</button>
+                <button onclick="setCategory('props')" id="tab-props" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-200">Props</button>
+            </div>
+
+            <div id="catalogContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <!-- Inyectado dinámicamente mediante JS -->
+            </div>
+
+            <div class="p-2.5 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-400 font-mono space-y-1">
+                <div class="flex justify-between"><span>Click Izq / Tap:</span><span class="text-slate-200">Seleccionar / Girar</span></div>
+                <div class="flex justify-between"><span>Click Der / 1 Dedo:</span><span class="text-slate-200">Rotar Cámara</span></div>
+                <div class="flex justify-between"><span>Pinch 2 Dedos:</span><span class="text-slate-200">Zoom / Pan</span></div>
+            </div>
+        </aside>
+
+        <!-- Botón flotante para reabrir Sidebar Izquierdo -->
+        <button id="btnOpenLeftSidebar" onclick="toggleLeftSidebar()" class="hidden absolute top-3 left-3 z-20 w-9 h-9 glass-panel rounded-lg text-slate-300 hover:text-white hover:border-burnout-pink/50 flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-boxes-stacked text-xs"></i>
+        </button>
+
+        <main class="flex-1 relative bg-slate-950 overflow-hidden">
+            <div id="canvas3DContainer" class="w-full h-full"></div>
+
+            <!-- HUD de Estado -->
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 glass-panel px-4 py-1.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 pointer-events-none z-10">
+                <span class="flex items-center gap-1.5">
+                    <span id="modeDot" class="w-2 h-2 rounded-full bg-burnout-pink animate-pulse"></span>
+                    Modo: <strong id="modeStatusText" class="text-white uppercase font-bold">Selección</strong>
+                </span>
+                <span class="text-slate-600">|</span>
+                <span>Objetos: <strong id="objectCountText" class="text-emerald-400">0</strong></span>
+            </div>
+
+            <!-- Controles flotantes de la Cámara 3D -->
+            <div class="absolute bottom-4 left-4 flex gap-1.5 z-10">
+                <button onclick="resetCameraView('orbit')" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-spin text-xs"></i>
+                    <span class="hidden sm:inline">Órbita</span>
+                </button>
+                <button onclick="resetCameraView('top')" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-map text-xs"></i>
+                    <span class="hidden sm:inline">Top-Down</span>
+                </button>
+                <button onclick="focusSelectedObject()" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-crosshairs text-xs"></i>
+                    <span class="hidden sm:inline">Enfocar</span>
+                </button>
+            </div>
+
+            <!-- HUD de Prueba de Conducción -->
+            <div id="driveHud" class="hidden absolute inset-0 pointer-events-none p-4 sm:p-6 flex flex-col justify-between z-30">
+                <div class="flex justify-between items-start">
+                    <div class="glass-panel p-3 sm:p-4 rounded-xl space-y-1">
+                        <div class="text-[10px] sm:text-xs text-slate-400 font-mono">VELOCIDAD</div>
+                        <div id="hudSpeed" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">0 <span class="text-xs text-slate-400">MPH</span></div>
+                    </div>
+                    <button onclick="stopTestDrive()" class="pointer-events-auto px-3.5 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Salir</span>
+                    </button>
+                </div>
+
+                <div class="w-full max-w-md mx-auto glass-panel p-3 rounded-xl space-y-2 pointer-events-auto">
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-burnout-pink">BOOST NITRO</span>
+                        <span id="hudNitroText" class="font-mono text-white">100%</span>
+                    </div>
+                    <div class="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                        <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-burnout-pink w-full transition-all"></div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 text-center font-mono hidden md:block">Controles: WASD / Flechas | Espacio: Nitro</div>
+                </div>
+
+                <!-- CONTROLES TÁCTILES EN PANTALLA -->
+                <div class="pointer-events-auto flex justify-between items-end w-full max-w-4xl mx-auto pt-2 pb-1">
+                    <div class="flex gap-2">
+                        <button id="touchBtnLeft" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-slate-700/80 text-white text-xl flex items-center justify-center shadow-2xl active:bg-burnout-pink/30">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <button id="touchBtnRight" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-slate-700/80 text-white text-xl flex items-center justify-center shadow-2xl active:bg-burnout-pink/30">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <button id="touchBtnNitro" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-burnout-pink border-2 border-white/40 text-white text-xl font-black flex flex-col items-center justify-center shadow-lg shadow-burnout-pink/40 active:scale-95">
+                        <i class="fa-solid fa-bolt text-lg"></i>
+                        <span class="text-[9px] font-mono tracking-tighter">BOOST</span>
+                    </button>
+
+                    <div class="flex gap-2">
+                        <button id="touchBtnBrake" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-rose-500/50 text-rose-400 text-xl flex items-center justify-center shadow-2xl">
+                            <i class="fa-solid fa-backward"></i>
+                        </button>
+                        <button id="touchBtnGas" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-emerald-500/50 text-emerald-400 text-xl flex items-center justify-center shadow-2xl">
+                            <i class="fa-solid fa-forward"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside id="rightSidebar" class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col z-10 relative shrink-0 transition-all duration-300">
+            <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <button onclick="toggleRightSidebar()" class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition" title="Ocultar inspector">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Inspector</span>
+                    <i class="fa-solid fa-sliders text-burnout-pink text-xs"></i>
+                </div>
+            </div>
+
+            <div id="inspectorContent" class="flex-1 overflow-y-auto p-4 space-y-5">
+                <div id="noSelectionState" class="h-64 flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
+                    <i class="fa-solid fa-mouse-pointer text-3xl opacity-40"></i>
+                    <p class="text-xs font-semibold">Selecciona un objeto en la escena 3D para editar sus propiedades o manipular sus Gizmos de Rotación.</p>
+                </div>
+
+                <div id="activeSelectionState" class="hidden space-y-5">
+                    <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div id="inspItemType" class="text-[10px] font-mono text-burnout-pink uppercase">Carretera</div>
+                            <input id="inspItemName" type="text" onchange="updateSelectedName(this.value)" class="bg-transparent font-bold text-sm text-white focus:outline-none focus:border-b border-burnout-pink w-full">
+                        </div>
+                        <button onclick="deleteSelectedObject()" class="w-8 h-8 rounded-lg bg-rose-950/40 hover:bg-rose-900 text-rose-400 flex items-center justify-center transition border border-rose-800/40" title="Eliminar objeto">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- POSICIÓN -->
+                    <div class="space-y-3">
+                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                            <span>Posición (Studs)</span>
+                            <span class="text-[10px] font-mono text-slate-500">Vector3</span>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-rose-400 font-bold">X</span>
+                                <input type="number" id="numPosX" onchange="onPosInputChange('x', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderPosX" min="-300" max="300" step="1" oninput="onPosSliderChange('x', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-emerald-400 font-bold">Y (Altura)</span>
+                                <input type="number" id="numPosY" onchange="onPosInputChange('y', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderPosY" min="0" max="100" step="0.5" oninput="onPosSliderChange('y', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-sky-400 font-bold">Z</span>
+                                <input type="number" id="numPosZ" onchange="onPosInputChange('z', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderPosZ" min="-300" max="300" step="1" oninput="onPosSliderChange('z', this.value)" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- ROTACIÓN -->
+                    <div class="space-y-3 pt-2 border-t border-slate-800">
+                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                            <span>Rotación 3D (Grados)</span>
+                            <span class="text-[10px] font-mono text-purple-400">Gizmo Activo</span>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-rose-400 font-bold flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Pitch (X)
+                                </span>
+                                <span id="numRotXVal" class="text-xs text-rose-300">0°</span>
+                            </div>
+                            <input type="range" id="sliderRotX" min="0" max="360" step="15" oninput="onRotSliderAxisChange('x', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-emerald-400 font-bold flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Yaw (Y - Giro)
+                                </span>
+                                <span id="numRotYVal" class="text-xs text-emerald-300">0°</span>
+                            </div>
+                            <input type="range" id="sliderRotY" min="0" max="360" step="15" oninput="onRotSliderAxisChange('y', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-sky-400 font-bold flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-sky-500 inline-block"></span> Roll (Z)
+                                </span>
+                                <span id="numRotZVal" class="text-xs text-sky-300">0°</span>
+                            </div>
+                            <input type="range" id="sliderRotZ" min="0" max="360" step="15" oninput="onRotSliderAxisChange('z', this.value)" class="w-full">
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-1 pt-1">
+                            <button onclick="rotateSelectedYawBy(0)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">0°</button>
+                            <button onclick="rotateSelectedYawBy(90)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">90°</button>
+                            <button onclick="rotateSelectedYawBy(180)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">180°</button>
+                            <button onclick="rotateSelectedYawBy(270)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">270°</button>
+                        </div>
+                    </div>
+
+                    <!-- DIMENSIONES -->
+                    <div class="space-y-3 pt-2 border-t border-slate-800">
+                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">Dimensiones (Ancho / Alto / Largo)</div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-slate-400">Ancho (X)</span>
+                                <input type="number" id="numScaleX" onchange="onScaleInputChange('x', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderScaleX" min="1" max="200" step="1" oninput="onScaleSliderChange('x', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-slate-400">Alto (Y)</span>
+                                <input type="number" id="numScaleY" onchange="onScaleInputChange('y', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderScaleY" min="1" max="100" step="1" oninput="onScaleSliderChange('y', this.value)" class="w-full">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-slate-400">Largo (Z)</span>
+                                <input type="number" id="numScaleZ" onchange="onScaleInputChange('z', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            </div>
+                            <input type="range" id="sliderScaleZ" min="1" max="200" step="1" oninput="onScaleSliderChange('z', this.value)" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- COLOR Y DUPLICAR -->
+                    <div class="pt-2 border-t border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-300">Color Primario</span>
+                            <input type="color" id="pickerColor" onchange="onColorChange(this.value)" class="w-8 h-8 rounded bg-transparent cursor-pointer border border-slate-700">
+                        </div>
+
+                        <button onclick="duplicateSelectedObject()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-700">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Duplicar Elemento</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </aside>
+
+        <!-- Botón flotante para reabrir Sidebar Derecho -->
+        <button id="btnOpenRightSidebar" onclick="toggleRightSidebar()" class="hidden absolute top-3 right-3 z-20 w-9 h-9 glass-panel rounded-lg text-slate-300 hover:text-white hover:border-burnout-pink/50 flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-sliders text-xs"></i>
+        </button>
+
+    </div>
+
+    <!-- MODAL DE EXPORTACIÓN LUAU -->
+    <div id="luauModal" class="hidden fixed inset-0 z-50 glass-panel flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-code text-purple-400"></i>
+                    <h3 class="font-bold text-sm text-white">Código Luau para Roblox Studio</h3>
+                </div>
+                <button onclick="closeLuauModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-4 flex-1 overflow-y-auto">
+                <p class="text-xs text-slate-400 mb-3">
+                    Copia este script e insértalo en la consola de comandos de Roblox Studio o entrégaselo a tu agente para que instale automáticamente el mapa dentro de <code class="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">Workspace.BurnoutDemo.District</code>.
+                </p>
+                <textarea id="luauCodeTextarea" readonly class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-emerald-400 focus:outline-none focus:border-purple-500/50 resize-none"></textarea>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-950/40 flex justify-end gap-2">
+                <button onclick="closeLuauModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">Cerrar</button>
+                <button onclick="copyLuauCode()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Copiar Código</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CATÁLOGO DE ELEMENTOS DISPONIBLES
+        const ITEM_DEFINITIONS = [
+            { id: 'road_straight', name: 'Recta Ancha (4 Carriles)', category: 'roads', icon: 'fa-vector-square', size: [40, 1, 60], color: 0x1e293b },
+            { id: 'road_curve', name: 'Curva de Derrape 90°', category: 'roads', icon: 'fa-turn-up', size: [60, 1, 60], color: 0x1e293b },
+            { id: 'road_intersection', name: 'Cruce 4 Vías', category: 'roads', icon: 'fa-table-cells-large', size: [60, 1, 60], color: 0x1e293b },
+            { id: 'road_ramp', name: 'Rampa de Ascenso / Salto', category: 'roads', icon: 'fa-chart-line', size: [30, 15, 60], color: 0x334155 },
+            { id: 'road_viaduct', name: 'Viaducto Elevado', category: 'roads', icon: 'fa-bridge', size: [40, 30, 80], color: 0x475569 },
+
+            { id: 'bld_skyscraper', name: 'Rascacielos Vidriado', category: 'buildings', icon: 'fa-building', size: [50, 120, 50], color: 0x0f172a },
+            { id: 'bld_tunnel', name: 'Edificio con Túnel', category: 'buildings', icon: 'fa-archway', size: [60, 70, 40], color: 0x1e1b4b },
+            { id: 'bld_mall', name: 'Centro Comercial (Mall)', category: 'buildings', icon: 'fa-store', size: [100, 30, 120], color: 0x311b92 },
+            { id: 'bld_block', name: 'Manzana de Cuadra Urbana', category: 'buildings', icon: 'fa-city', size: [80, 45, 80], color: 0x1e293b },
+
+            { id: 'prop_finish_arch', name: 'Arco de Meta Holográfico', category: 'props', icon: 'fa-flag-checkered', size: [45, 20, 6], color: 0xe02484 },
+            { id: 'prop_nitro', name: 'Cápsula Nitro (+30% Boost)', category: 'props', icon: 'fa-bolt', size: [6, 6, 6], color: 0xf59e0b },
+            { id: 'prop_barrier', name: 'Barrera de Impacto Rompible', category: 'props', icon: 'fa-shield-halved', size: [15, 6, 4], color: 0xef4444 },
+            { id: 'prop_light', name: 'Poste Neón de Luz', category: 'props', icon: 'fa-lightbulb', size: [2, 20, 2], color: 0x06b6d4 }
+        ];
+
+        // VARIABLES GLOBALES
+        let scene, camera, renderer, raycaster, mouse;
+        let groundGrid, groundPlane;
+        let sceneObjects = [];
+        let selectedObject = null;
+        let currentMode = 'select'; // 'select', 'move', 'rotate'
+        let currentCategory = 'roads';
+
+        // GIZMO DE ROTACIÓN 3D
+        let rotationGizmoGroup = null;
+        let ringMeshX, ringMeshY, ringMeshZ;
+        let activeGizmoAxis = null;
+        let gizmoStartMouse = { x: 0, y: 0 };
+        let gizmoStartRotation = { x: 0, y: 0, z: 0 };
+
+        // Variables de Arrastre 3D
+        let isDragging3D = false;
+        let dragPlane = new THREE.Plane();
+        let dragOffset = new THREE.Vector3();
+        let planeIntersection = new THREE.Vector3();
+
+        // Variables de Cámara y Órbita
+        let isOrbiting = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraTarget = new THREE.Vector3(0, 0, 0);
+        let cameraRadius = 150;
+        let cameraTheta = Math.PI / 4;
+        let cameraPhi = Math.PI / 4;
+
+        // Gestos Táctiles
+        let initialTouchDistance = 0;
+        let isTouchPinching = false;
+
+        // Modo Prueba de Conducción
+        let isTestingDrive = false;
+        let carMesh = null;
+        let carSpeed = 0;
+        let nitroCharge = 100;
+        let keysPressed = {};
+
+        window.onload = function() {
+            init3DEngine();
+            initRotationGizmo();
+            setupEventListeners();
+            renderCatalogItems();
+            updateUIState();
+            
+            animate();
+        };
+
+        function showToast(message, type = 'info') {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `glass-panel px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-xl border pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ${
+                type === 'error' ? 'border-rose-500/50 text-rose-300 bg-rose-950/90' :
+                type === 'success' ? 'border-emerald-500/50 text-emerald-300 bg-emerald-950/90' :
+                'border-burnout-pink/50 text-slate-200 bg-slate-900/90'
+            }`;
+            const icon = type === 'error' ? 'fa-triangle-exclamation text-rose-400' :
+                         type === 'success' ? 'fa-circle-check text-emerald-400' :
+                         'fa-circle-info text-burnout-pink';
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function setEditorMode(mode) {
+            currentMode = mode;
+            
+            document.getElementById('btnModeSelect').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'select' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
+            document.getElementById('btnModeMove').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'move' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
+            document.getElementById('btnModeRotate').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'rotate' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
+
+            const modeNames = { 'select': 'Selección', 'move': 'Mover 3D', 'rotate': 'Rotación (Gizmo)' };
+            document.getElementById('modeStatusText').innerText = modeNames[mode] || 'Selección';
+
+            updateGizmoPositionAndScale();
+        }
+
+        function updateUIState() {
+            setEditorMode(currentMode);
+            updateObjectCountUI();
+            if (selectedObject) {
+                updateInspectorValues();
+            } else {
+                deselectObject();
+            }
+        }
+
+        function updateObjectCountUI() {
+            document.getElementById('objectCountText').innerText = sceneObjects.length;
+        }
+
+        function init3DEngine() {
+            const container = document.getElementById('canvas3DContainer');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x090d16);
+            scene.fog = new THREE.FogExp2(0x090d16, 0.002);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
+            updateCameraPosition();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(150, 250, 100);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            const hemiLight = new THREE.HemisphereLight(0x06b6d4, 0x090d16, 0.4);
+            scene.add(hemiLight);
+
+            groundGrid = new THREE.GridHelper(600, 120, 0xe02484, 0x1f2937);
+            scene.add(groundGrid);
+
+            const groundGeo = new THREE.PlaneGeometry(600, 600);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9, metalness: 0.1 });
+            groundPlane = new THREE.Mesh(groundGeo, groundMat);
+            groundPlane.rotation.x = -Math.PI / 2;
+            groundPlane.receiveShadow = true;
+            scene.add(groundPlane);
+
+            createTestCarMesh();
+
+            if (window.ResizeObserver) {
+                const resizeObserver = new ResizeObserver(() => onWindowResize());
+                resizeObserver.observe(container);
+            }
+        }
+
+        function initRotationGizmo() {
+            rotationGizmoGroup = new THREE.Group();
+            rotationGizmoGroup.name = "rotationGizmo";
+
+            const createRing = (colorHex, axisName, rotX, rotY, rotZ) => {
+                const geometry = new THREE.TorusGeometry(15, 0.6, 16, 64);
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: colorHex, 
+                    depthTest: false, 
+                    transparent: true, 
+                    opacity: 0.95 
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.rotation.set(rotX, rotY, rotZ);
+                mesh.userData = { isGizmoRing: true, axis: axisName, defaultColor: colorHex };
+                mesh.renderOrder = 999;
+                return mesh;
+            };
+
+            ringMeshX = createRing(0xef4444, 'x', 0, Math.PI / 2, 0);
+            ringMeshY = createRing(0x10b981, 'y', Math.PI / 2, 0, 0);
+            ringMeshZ = createRing(0x3b82f6, 'z', 0, 0, 0);
+
+            rotationGizmoGroup.add(ringMeshX);
+            rotationGizmoGroup.add(ringMeshY);
+            rotationGizmoGroup.add(ringMeshZ);
+
+            rotationGizmoGroup.visible = false;
+            scene.add(rotationGizmoGroup);
+        }
+
+        function updateCameraPosition() {
+            cameraPhi = Math.max(0.05, Math.min(Math.PI / 2 - 0.01, cameraPhi));
+            
+            camera.position.x = cameraTarget.x + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            camera.position.y = cameraTarget.y + cameraRadius * Math.cos(cameraPhi);
+            camera.position.z = cameraTarget.z + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            
+            camera.lookAt(cameraTarget);
+        }
+
+        function updateGizmoPositionAndScale() {
+            if (!selectedObject || !rotationGizmoGroup) {
+                if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
+                return;
+            }
+
+            if (currentMode === 'rotate') {
+                rotationGizmoGroup.visible = true;
+                rotationGizmoGroup.position.copy(selectedObject.position);
+
+                const bbox = new THREE.Box3().setFromObject(selectedObject);
+                const size = new THREE.Vector3();
+                bbox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z, 10);
+                
+                const distance = camera.position.distanceTo(selectedObject.position);
+                const scale = Math.max(0.6, Math.min(3.5, (maxDim * 0.7 + distance * 0.08) / 20));
+
+                rotationGizmoGroup.scale.set(scale, scale, scale);
+                rotationGizmoGroup.rotation.copy(selectedObject.rotation);
+            } else {
+                rotationGizmoGroup.visible = false;
+            }
+        }
+
+        function createSceneObject(itemDef, overrideProps = {}) {
+            const group = new THREE.Group();
+            
+            const [w, h, l] = overrideProps.dimensions || itemDef.size;
+            const color = overrideProps.color !== undefined ? overrideProps.color : itemDef.color;
+
+            let mainMesh;
+            const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4, metalness: 0.2 });
+
+            if (itemDef.category === 'roads') {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                mainMesh = new THREE.Mesh(geo, material);
+                mainMesh.receiveShadow = true;
+                mainMesh.castShadow = true;
+
+                const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.8);
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.position.y = h / 2 + 0.1;
+                group.add(stripe);
+
+            } else if (itemDef.category === 'buildings') {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                mainMesh = new THREE.Mesh(geo, material);
+                mainMesh.castShadow = true;
+                mainMesh.receiveShadow = true;
+
+                const winGeo = new THREE.BoxGeometry(w * 0.9, h * 0.8, l * 0.9);
+                const winMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
+                const windows = new THREE.Mesh(winGeo, winMat);
+                group.add(windows);
+
+            } else {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                mainMesh = new THREE.Mesh(geo, material);
+                mainMesh.castShadow = true;
+
+                if (itemDef.id === 'prop_nitro') {
+                    const light = new THREE.PointLight(0xf59e0b, 2, 20);
+                    group.add(light);
+                }
+            }
+
+            group.add(mainMesh);
+
+            group.userData = {
+                typeId: itemDef.id,
+                name: overrideProps.name || itemDef.name,
+                category: itemDef.category,
+                dimensions: [w, h, l],
+                color: color
+            };
+
+            group.position.set(
+                overrideProps.posX !== undefined ? overrideProps.posX : 0,
+                overrideProps.posY !== undefined ? overrideProps.posY : h / 2,
+                overrideProps.posZ !== undefined ? overrideProps.posZ : 0
+            );
+
+            if (overrideProps.rotX !== undefined) group.rotation.x = overrideProps.rotX;
+            if (overrideProps.rotY !== undefined) group.rotation.y = overrideProps.rotY;
+            if (overrideProps.rotZ !== undefined) group.rotation.z = overrideProps.rotZ;
+
+            scene.add(group);
+            sceneObjects.push(group);
+
+            selectObject(group);
+            updateObjectCountUI();
+
+            return group;
+        }
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            ['roads', 'buildings', 'props'].forEach(c => {
+                const btn = document.getElementById(`tab-${c}`);
+                if (btn) {
+                    if (c === cat) {
+                        btn.className = "flex-1 py-2 text-center border-b-2 border-burnout-pink text-white font-bold";
+                    } else {
+                        btn.className = "flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-bold";
+                    }
+                }
+            });
+            renderCatalogItems();
+        }
+
+        function renderCatalogItems() {
+            const container = document.getElementById('catalogContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filtered = ITEM_DEFINITIONS.filter(i => i.category === currentCategory);
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-burnout-pink/50 rounded-xl cursor-pointer transition flex items-center justify-between group";
+                card.onclick = () => createSceneObject(item);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center text-burnout-pink group-hover:scale-110 transition">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-200 group-hover:text-white">${item.name}</div>
+                            <div class="text-[10px] font-mono text-slate-500">${item.size[0]}x${item.size[2]} studs</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-plus text-slate-600 group-hover:text-burnout-pink text-xs"></i>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectObject(obj) {
+            deselectObject();
+            selectedObject = obj;
+
+            document.getElementById('noSelectionState').classList.add('hidden');
+            document.getElementById('activeSelectionState').classList.remove('hidden');
+
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function deselectObject() {
+            selectedObject = null;
+            document.getElementById('noSelectionState').classList.remove('hidden');
+            document.getElementById('activeSelectionState').classList.add('hidden');
+            if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
+        }
+
+        function updateInspectorValues() {
+            if (!selectedObject) return;
+
+            document.getElementById('inspItemType').innerText = selectedObject.userData.category || 'Objeto';
+            document.getElementById('inspItemName').value = selectedObject.userData.name || 'Sin nombre';
+
+            // Posición
+            document.getElementById('numPosX').value = Math.round(selectedObject.position.x);
+            document.getElementById('sliderPosX').value = Math.round(selectedObject.position.x);
+
+            document.getElementById('numPosY').value = selectedObject.position.y;
+            document.getElementById('sliderPosY').value = selectedObject.position.y;
+
+            document.getElementById('numPosZ').value = Math.round(selectedObject.position.z);
+            document.getElementById('sliderPosZ').value = Math.round(selectedObject.position.z);
+
+            // Rotación
+            const rx = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.x));
+            const ry = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.y));
+            const rz = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.z));
+
+            document.getElementById('sliderRotX').value = (rx % 360 + 360) % 360;
+            document.getElementById('numRotXVal').innerText = `${(rx % 360 + 360) % 360}°`;
+
+            document.getElementById('sliderRotY').value = (ry % 360 + 360) % 360;
+            document.getElementById('numRotYVal').innerText = `${(ry % 360 + 360) % 360}°`;
+
+            document.getElementById('sliderRotZ').value = (rz % 360 + 360) % 360;
+            document.getElementById('numRotZVal').innerText = `${(rz % 360 + 360) % 360}°`;
+
+            // Dimensiones
+            const dims = selectedObject.userData.dimensions || [10, 10, 10];
+            document.getElementById('numScaleX').value = dims[0];
+            document.getElementById('sliderScaleX').value = dims[0];
+
+            document.getElementById('numScaleY').value = dims[1];
+            document.getElementById('sliderScaleY').value = dims[1];
+
+            document.getElementById('numScaleZ').value = dims[2];
+            document.getElementById('sliderScaleZ').value = dims[2];
+
+            // Color
+            if (selectedObject.userData.color) {
+                const hexColor = "#" + selectedObject.userData.color.toString(16).padStart(6, '0');
+                document.getElementById('pickerColor').value = hexColor;
+            }
+        }
+
+        function onPosInputChange(axis, val) {
+            if (!selectedObject) return;
+            selectedObject.position[axis] = parseFloat(val) || 0;
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function onPosSliderChange(axis, val) {
+            if (!selectedObject) return;
+            selectedObject.position[axis] = parseFloat(val);
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function onRotSliderAxisChange(axis, degVal) {
+            if (!selectedObject) return;
+            selectedObject.rotation[axis] = THREE.MathUtils.degToRad(parseFloat(degVal));
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function rotateSelectedYawBy(deg) {
+            if (!selectedObject) return;
+            selectedObject.rotation.y = THREE.MathUtils.degToRad(deg);
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function onScaleInputChange(axis, val) {
+            if (!selectedObject) return;
+            const dims = selectedObject.userData.dimensions || [10, 10, 10];
+            const idx = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
+            dims[idx] = Math.max(1, parseFloat(val) || 1);
+            selectedObject.userData.dimensions = dims;
+
+            selectedObject.scale[axis] = dims[idx] / (ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.typeId)?.size[idx] || 10);
+            updateInspectorValues();
+        }
+
+        function onScaleSliderChange(axis, val) {
+            onScaleInputChange(axis, val);
+        }
+
+        function onColorChange(hexVal) {
+            if (!selectedObject) return;
+            const colorInt = parseInt(hexVal.replace('#', ''), 16);
+            selectedObject.userData.color = colorInt;
+
+            selectedObject.traverse(child => {
+                if (child.isMesh && child.material && !child.userData.isGizmoRing) {
+                    child.material.color.setHex(colorInt);
+                }
+            });
+        }
+
+        function updateSelectedName(nameVal) {
+            if (!selectedObject) return;
+            selectedObject.userData.name = nameVal;
+        }
+
+        function deleteSelectedObject() {
+            if (!selectedObject) return;
+            scene.remove(selectedObject);
+            sceneObjects = sceneObjects.filter(o => o !== selectedObject);
+            deselectObject();
+            updateObjectCountUI();
+            showToast("Objeto eliminado", "info");
+        }
+
+        function duplicateSelectedObject() {
+            if (!selectedObject) return;
+            const itemDef = ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.typeId) || ITEM_DEFINITIONS[0];
+            
+            const dup = createSceneObject(itemDef, {
+                name: selectedObject.userData.name + " (Copia)",
+                dimensions: [...selectedObject.userData.dimensions],
+                color: selectedObject.userData.color,
+                posX: selectedObject.position.x + 10,
+                posY: selectedObject.position.y,
+                posZ: selectedObject.position.z + 10,
+                rotX: selectedObject.rotation.x,
+                rotY: selectedObject.rotation.y,
+                rotZ: selectedObject.rotation.z
+            });
+
+            showToast("Objeto duplicado", "success");
+        }
+
+        function clearMapPrompt() {
+            if (sceneObjects.length === 0) return;
+            sceneObjects.forEach(obj => scene.remove(obj));
+            sceneObjects = [];
+            deselectObject();
+            updateObjectCountUI();
+            showToast("Escena vaciada correctamente", "info");
+        }
+
+        function setupEventListeners() {
+            const container = document.getElementById('canvas3DContainer');
+
+            container.addEventListener('mousedown', onMouseDown);
+            container.addEventListener('mousemove', onMouseMove);
+            container.addEventListener('mouseup', onMouseUp);
+            container.addEventListener('wheel', onMouseWheel);
+
+            container.addEventListener('touchstart', onTouchStart, { passive: false });
+            container.addEventListener('touchmove', onTouchMove, { passive: false });
+            container.addEventListener('touchend', onTouchEnd, { passive: false });
+
+            container.addEventListener('contextmenu', e => e.preventDefault());
+
+            window.addEventListener('keydown', e => {
+                keysPressed[e.key.toLowerCase()] = true;
+                if (e.key === 'Escape' && isTestingDrive) stopTestDrive();
+                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedObject && !isTestingDrive) deleteSelectedObject();
+            });
+
+            window.addEventListener('keyup', e => {
+                keysPressed[e.key.toLowerCase()] = false;
+            });
+
+            window.addEventListener('resize', onWindowResize);
+            setupTouchDriveControls();
+        }
+
+        function onMouseDown(e) {
+            if (isTestingDrive) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            if (e.button === 0) { // Click Izquierdo
+                raycaster.setFromCamera(mouse, camera);
+
+                // Check Gizmo intersection if in rotate mode
+                if (currentMode === 'rotate' && rotationGizmoGroup && rotationGizmoGroup.visible) {
+                    const gizmoHits = raycaster.intersectObjects(rotationGizmoGroup.children);
+                    if (gizmoHits.length > 0) {
+                        const hitRing = gizmoHits[0].object;
+                        if (hitRing.userData.isGizmoRing) {
+                            activeGizmoAxis = hitRing.userData.axis;
+                            gizmoStartMouse = { x: e.clientX, y: e.clientY };
+                            gizmoStartRotation = {
+                                x: selectedObject.rotation.x,
+                                y: selectedObject.rotation.y,
+                                z: selectedObject.rotation.z
+                            };
+                            return;
+                        }
+                    }
+                }
+
+                // Raycast Scene Objects
+                const hits = raycaster.intersectObjects(sceneObjects, true);
+                if (hits.length > 0) {
+                    let rootObj = hits[0].object;
+                    while (rootObj.parent && rootObj.parent !== scene) {
+                        rootObj = rootObj.parent;
+                    }
+
+                    selectObject(rootObj);
+
+                    if (currentMode === 'move') {
+                        isDragging3D = true;
+                        dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), rootObj.position);
+                        if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
+                            dragOffset.copy(planeIntersection).sub(rootObj.position);
+                        }
+                    }
+                } else {
+                    if (currentMode === 'select') {
+                        deselectObject();
+                    }
+                }
+
+            } else if (e.button === 2) { // Click Derecho
+                isOrbiting = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        }
+
+        function onMouseMove(e) {
+            if (isTestingDrive) return;
+
+            if (activeGizmoAxis && selectedObject) {
+                const deltaX = e.clientX - gizmoStartMouse.x;
+                const sensitivity = 0.01;
+                selectedObject.rotation[activeGizmoAxis] = gizmoStartRotation[activeGizmoAxis] + deltaX * sensitivity;
+                updateInspectorValues();
+                updateGizmoPositionAndScale();
+                return;
+            }
+
+            if (isDragging3D && selectedObject) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
+                    selectedObject.position.x = Math.round(planeIntersection.x - dragOffset.x);
+                    selectedObject.position.z = Math.round(planeIntersection.z - dragOffset.z);
+                    updateInspectorValues();
+                    updateGizmoPositionAndScale();
+                }
+                return;
+            }
+
+            if (isOrbiting) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                cameraTheta -= deltaX * 0.005;
+                cameraPhi -= deltaY * 0.005;
+
+                updateCameraPosition();
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        }
+
+        function onMouseUp() {
+            isOrbiting = false;
+            isDragging3D = false;
+            activeGizmoAxis = null;
+        }
+
+        function onMouseWheel(e) {
+            if (isTestingDrive) return;
+            cameraRadius = Math.max(20, Math.min(500, cameraRadius + e.deltaY * 0.1));
+            updateCameraPosition();
+        }
+
+        function onTouchStart(e) {
+            if (isTestingDrive) return;
+            e.preventDefault();
+
+            if (e.touches.length === 1) {
+                isTouchPinching = false;
+                const touch = e.touches[0];
+                onMouseDown({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0
+                });
+            } else if (e.touches.length === 2) {
+                isTouchPinching = true;
+                isDragging3D = false;
+                activeGizmoAxis = null;
+
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                initialTouchDistance = Math.hypot(dx, dy);
+            }
+        }
+
+        function onTouchMove(e) {
+            if (isTestingDrive) return;
+            e.preventDefault();
+
+            if (e.touches.length === 1 && !isTouchPinching) {
+                const touch = e.touches[0];
+                onMouseMove({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+            } else if (e.touches.length === 2 && isTouchPinching) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const currentDistance = Math.hypot(dx, dy);
+
+                if (initialTouchDistance > 0) {
+                    const factor = (initialTouchDistance - currentDistance) * 0.5;
+                    cameraRadius = Math.max(20, Math.min(500, cameraRadius + factor));
+                    initialTouchDistance = currentDistance;
+                    updateCameraPosition();
+                }
+            }
+        }
+
+        function onTouchEnd(e) {
+            if (isTestingDrive) return;
+            if (e.touches.length === 0) {
+                isTouchPinching = false;
+                onMouseUp();
+            }
+        }
+
+        function createTestCarMesh() {
+            carMesh = new THREE.Group();
+
+            const bodyGeo = new THREE.BoxGeometry(6, 2.5, 12);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe02484, roughness: 0.2, metalness: 0.8 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.5;
+            carMesh.add(body);
+
+            const cabinGeo = new THREE.BoxGeometry(4.5, 1.8, 6);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(0, 3.2, -0.5);
+            carMesh.add(cabin);
+
+            carMesh.visible = false;
+            scene.add(carMesh);
+        }
+
+        function startTestDrive() {
+            if (sceneObjects.length === 0) {
+                showToast("Agrega al menos una pieza antes de probar la pista.", "error");
+                return;
+            }
+
+            isTestingDrive = true;
+            deselectObject();
+
+            carMesh.position.set(sceneObjects[0].position.x, sceneObjects[0].position.y + 3, sceneObjects[0].position.z);
+            carMesh.rotation.set(0, 0, 0);
+            carMesh.visible = true;
+
+            carSpeed = 0;
+            nitroCharge = 100;
+
+            document.getElementById('driveHud').classList.remove('hidden');
+            showToast("Modo Prueba de Conducción Activo", "success");
+        }
+
+        function stopTestDrive() {
+            isTestingDrive = false;
+            if (carMesh) carMesh.visible = false;
+            document.getElementById('driveHud').classList.add('hidden');
+
+            cameraTarget.set(0, 0, 0);
+            cameraRadius = 150;
+            cameraTheta = Math.PI / 4;
+            cameraPhi = Math.PI / 4;
+            updateCameraPosition();
+        }
+
+        function setupTouchDriveControls() {
+            const bindControl = (id, key) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+
+                const down = (e) => { e.preventDefault(); keysPressed[key] = true; };
+                const up = (e) => { e.preventDefault(); keysPressed[key] = false; };
+
+                btn.addEventListener('touchstart', down, { passive: false });
+                btn.addEventListener('touchend', up, { passive: false });
+                btn.addEventListener('mousedown', down);
+                btn.addEventListener('mouseup', up);
+            };
+
+            bindControl('touchBtnLeft', 'arrowleft');
+            bindControl('touchBtnRight', 'arrowright');
+            bindControl('touchBtnGas', 'arrowup');
+            bindControl('touchBtnBrake', 'arrowdown');
+            bindControl('touchBtnNitro', ' ');
+        }
+
+        function updateTestDrivePhysics() {
+            if (!isTestingDrive) return;
+
+            const isNitro = keysPressed[' '] || keysPressed['space'];
+            let maxSpeed = 180;
+
+            if (isNitro && nitroCharge > 0) {
+                maxSpeed = 260;
+                nitroCharge = Math.max(0, nitroCharge - 0.8);
+                carSpeed = Math.min(maxSpeed, carSpeed + 4.5);
+            } else if (nitroCharge < 100 && !isNitro) {
+                nitroCharge = Math.min(100, nitroCharge + 0.2);
+            }
+
+            document.getElementById('hudNitroBar').style.width = `${nitroCharge}%`;
+            document.getElementById('hudNitroText').innerText = `${Math.round(nitroCharge)}%`;
+
+            if (keysPressed['w'] || keysPressed['arrowup']) {
+                carSpeed = Math.min(maxSpeed, carSpeed + 2.5);
+            } else if (keysPressed['s'] || keysPressed['arrowdown']) {
+                carSpeed = Math.max(-60, carSpeed - 2.0);
+            } else {
+                carSpeed *= 0.96;
+            }
+
+            if (keysPressed['a'] || keysPressed['arrowleft']) carMesh.rotation.y += 0.04 * (carSpeed / 100);
+            if (keysPressed['d'] || keysPressed['arrowright']) carMesh.rotation.y -= 0.04 * (carSpeed / 100);
+
+            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), carMesh.rotation.y);
+            carMesh.position.addScaledVector(forward, carSpeed * 0.02);
+
+            cameraTarget.copy(carMesh.position);
+            cameraRadius = 45;
+            cameraTheta = carMesh.rotation.y + Math.PI;
+            cameraPhi = Math.PI / 6;
+            updateCameraPosition();
+
+            document.getElementById('hudSpeed').innerText = `${Math.round(Math.abs(carSpeed))} MPH`;
+        }
+
+        function toggleLeftSidebar() {
+            const sidebar = document.getElementById('leftSidebar');
+            const btnOpen = document.getElementById('btnOpenLeftSidebar');
+            sidebar.classList.toggle('hidden');
+            btnOpen.classList.toggle('hidden');
+            setTimeout(onWindowResize, 50);
+        }
+
+        function toggleRightSidebar() {
+            const sidebar = document.getElementById('rightSidebar');
+            const btnOpen = document.getElementById('btnOpenRightSidebar');
+            sidebar.classList.toggle('hidden');
+            btnOpen.classList.toggle('hidden');
+            setTimeout(onWindowResize, 50);
+        }
+
+        function resetCameraView(viewType) {
+            if (viewType === 'top') {
+                cameraTarget.set(0, 0, 0);
+                cameraRadius = 250;
+                cameraPhi = 0.05;
+                cameraTheta = 0;
+            } else {
+                cameraTarget.set(0, 0, 0);
+                cameraRadius = 150;
+                cameraPhi = Math.PI / 4;
+                cameraTheta = Math.PI / 4;
+            }
+            updateCameraPosition();
+        }
+
+        function focusSelectedObject() {
+            if (!selectedObject) {
+                showToast("Selecciona un objeto para enfocar.", "info");
+                return;
+            }
+            cameraTarget.copy(selectedObject.position);
+            cameraRadius = 80;
+            updateCameraPosition();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas3DContainer');
+            if (!container || !renderer || !camera) return;
+
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function exportLuauScript() {
+            if (sceneObjects.length === 0) {
+                showToast("Agrega al menos una pieza al mapa antes de exportar.", "error");
+                return;
+            }
+
+            let code = `-- ==========================================================\n`;
+            code += `-- BURNOUT MAP STUDIO - GENERATED LUAU SCRIPT\n`;
+            code += `-- Paste this script into Roblox Studio Command Bar\n`;
+            code += `-- ==========================================================\n\n`;
+            code += `local Workspace = game:GetService("Workspace")\n`;
+            code += `local burnoutDemo = Workspace:FindFirstChild("BurnoutDemo") or Instance.new("Folder")\n`;
+            code += `burnoutDemo.Name = "BurnoutDemo"\n`;
+            code += `burnoutDemo.Parent = Workspace\n\n`;
+            code += `local district = burnoutDemo:FindFirstChild("District") or Instance.new("Folder")\n`;
+            code += `district.Name = "District"\n`;
+            code += `district.Parent = burnoutDemo\n\n`;
+
+            sceneObjects.forEach((obj, idx) => {
+                const name = (obj.userData.name || "MapPart_" + idx).replace(/[^a-zA-Z0-9_]/g, "_");
+                const [w, h, l] = obj.userData.dimensions || [10, 10, 10];
+                const colorHex = obj.userData.color ? "0x" + obj.userData.color.toString(16).padStart(6, "0") : "0x1e293b";
+                const posX = Math.round(obj.position.x * 10) / 10;
+                const posY = Math.round(obj.position.y * 10) / 10;
+                const posZ = Math.round(obj.position.z * 10) / 10;
+                
+                const rotX = Math.round(THREE.MathUtils.radToDeg(obj.rotation.x));
+                const rotY = Math.round(THREE.MathUtils.radToDeg(obj.rotation.y));
+                const rotZ = Math.round(THREE.MathUtils.radToDeg(obj.rotation.z));
+
+                code += `do -- ${name}\n`;
+                code += `    local part = Instance.new("Part")\n`;
+                code += `    part.Name = "${name}"\n`;
+                code += `    part.Size = Vector3.new(${w}, ${h}, ${l})\n`;
+                code += `    part.Position = Vector3.new(${posX}, ${posY}, ${posZ})\n`;
+                code += `    part.Orientation = Vector3.new(${rotX}, ${rotY}, ${rotZ})\n`;
+                code += `    part.Color = Color3.fromHex("${colorHex}")\n`;
+                code += `    part.Material = Enum.Material.SmoothPlastic\n`;
+                code += `    part.Anchored = true\n`;
+                code += `    part.Parent = district\n`;
+                code += `end\n\n`;
+            });
+
+            code += `print("Successfully imported ${sceneObjects.length} map parts into Workspace.BurnoutDemo.District!")\n`;
+
+            document.getElementById('luauCodeTextarea').value = code;
+            document.getElementById('luauModal').classList.remove('hidden');
+        }
+
+        function closeLuauModal() {
+            document.getElementById('luauModal').classList.add('hidden');
+        }
+
+        function copyLuauCode() {
+            const textarea = document.getElementById('luauCodeTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("¡Código Luau copiado al portapapeles!", "success");
+        }
+
+        function downloadHtmlMap() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Mapa_Burnout_${Date.now()}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Mapa HTML descargado", "success");
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isTestingDrive) {
+                updateTestDrivePhysics();
+            }
+
+            sceneObjects.forEach(obj => {
+                if (obj.userData.typeId === 'prop_nitro') {
+                    obj.rotation.y += 0.02;
+                }
+            });
+
+            updateGizmoPositionAndScale();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
