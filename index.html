@@ -82,7 +82,7 @@
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
 
-    <header class="min-h-14 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between px-3 py-2 gap-2 z-20 shrink-0">
+    <header id="mainHeader" class="min-h-14 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between px-3 py-2 gap-2 z-20 shrink-0">
         <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-burnout-pink to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-burnout-pink/30 shrink-0">
                 <i class="fa-solid fa-road text-sm"></i>
@@ -177,7 +177,7 @@
             <div id="canvas3DContainer" class="w-full h-full"></div>
 
             <!-- HUD de Estado -->
-            <div class="absolute top-3 left-1/2 -translate-x-1/2 glass-panel px-4 py-1.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 pointer-events-none z-10">
+            <div id="statusHud" class="absolute top-3 left-1/2 -translate-x-1/2 glass-panel px-4 py-1.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 pointer-events-none z-10">
                 <span class="flex items-center gap-1.5">
                     <span id="modeDot" class="w-2 h-2 rounded-full bg-burnout-pink animate-pulse"></span>
                     Modo: <strong id="modeStatusText" class="text-white uppercase font-bold">Selección</strong>
@@ -187,7 +187,7 @@
             </div>
 
             <!-- Controles flotantes de la Cámara 3D -->
-            <div class="absolute bottom-4 left-4 flex gap-1.5 z-10">
+            <div id="floatingCamControls" class="absolute bottom-4 left-4 flex gap-1.5 z-10">
                 <button onclick="resetCameraView('orbit')" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-arrows-spin text-xs"></i>
                     <span class="hidden sm:inline">Órbita</span>
@@ -205,9 +205,12 @@
             <!-- HUD de Prueba de Conducción -->
             <div id="driveHud" class="hidden absolute inset-0 pointer-events-none p-4 sm:p-6 flex flex-col justify-between z-30">
                 <div class="flex justify-between items-start">
-                    <div class="glass-panel p-3 sm:p-4 rounded-xl space-y-1">
-                        <div class="text-[10px] sm:text-xs text-slate-400 font-mono">VELOCIDAD</div>
-                        <div id="hudSpeed" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">0 <span class="text-xs text-slate-400">MPH</span></div>
+                    <div class="flex flex-col gap-2">
+                        <div class="glass-panel p-3 sm:p-4 rounded-xl space-y-1 inline-block w-max">
+                            <div class="text-[10px] sm:text-xs text-slate-400 font-mono">VELOCIDAD</div>
+                            <div id="hudSpeed" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">0 <span class="text-xs text-slate-400">MPH</span></div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-mono hidden md:block bg-slate-900/60 px-2 py-1 rounded">WASD/Flechas | Espacio: Nitro</div>
                     </div>
                     <button onclick="stopTestDrive()" class="pointer-events-auto px-3.5 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center gap-2">
                         <i class="fa-solid fa-right-from-bracket"></i>
@@ -215,20 +218,10 @@
                     </button>
                 </div>
 
-                <div class="w-full max-w-md mx-auto glass-panel p-3 rounded-xl space-y-2 pointer-events-auto">
-                    <div class="flex justify-between text-xs font-bold">
-                        <span class="text-burnout-pink">BOOST NITRO</span>
-                        <span id="hudNitroText" class="font-mono text-white">100%</span>
-                    </div>
-                    <div class="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                        <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-burnout-pink w-full transition-all"></div>
-                    </div>
-                    <div class="text-[10px] text-slate-400 text-center font-mono hidden md:block">Controles: WASD / Flechas | Espacio: Nitro</div>
-                </div>
-
                 <!-- CONTROLES TÁCTILES EN PANTALLA -->
-                <div class="pointer-events-auto flex justify-between items-end w-full max-w-4xl mx-auto pt-2 pb-1">
-                    <div class="flex gap-2">
+                <div class="pointer-events-auto flex justify-between items-end w-full max-w-4xl mx-auto pt-2 pb-4 px-4 relative">
+                    <!-- Izquierda: Dirección -->
+                    <div class="flex gap-2 mb-2">
                         <button id="touchBtnLeft" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-slate-700/80 text-white text-xl flex items-center justify-center shadow-2xl active:bg-burnout-pink/30">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
@@ -237,12 +230,26 @@
                         </button>
                     </div>
 
-                    <button id="touchBtnNitro" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-burnout-pink border-2 border-white/40 text-white text-xl font-black flex flex-col items-center justify-center shadow-lg shadow-burnout-pink/40 active:scale-95">
-                        <i class="fa-solid fa-bolt text-lg"></i>
-                        <span class="text-[9px] font-mono tracking-tighter">BOOST</span>
-                    </button>
+                    <!-- Centro: Nitro Boost -->
+                    <div class="absolute left-1/2 -translate-x-1/2 bottom-2 flex flex-col items-center gap-2">
+                        <button id="touchBtnNitro" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-burnout-pink border-2 border-white/40 text-white text-xl font-black flex flex-col items-center justify-center shadow-lg shadow-burnout-pink/40 active:scale-95">
+                            <i class="fa-solid fa-bolt text-lg"></i>
+                            <span class="text-[9px] font-mono tracking-tighter">BOOST</span>
+                        </button>
 
-                    <div class="flex gap-2">
+                        <div class="w-32 sm:w-36 glass-panel px-3 py-1.5 rounded-lg space-y-1 shadow-lg">
+                            <div class="flex justify-between text-[9px] sm:text-[10px] font-bold">
+                                <span class="text-burnout-pink">NITRO</span>
+                                <span id="hudNitroText" class="font-mono text-white">100%</span>
+                            </div>
+                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                                <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-burnout-pink w-full transition-all"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Derecha: Pedales -->
+                    <div class="flex gap-2 mb-2">
                         <button id="touchBtnBrake" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-rose-500/50 text-rose-400 text-xl flex items-center justify-center shadow-2xl">
                             <i class="fa-solid fa-backward"></i>
                         </button>
@@ -444,20 +451,26 @@
         // CATÁLOGO DE ELEMENTOS DISPONIBLES
         const ITEM_DEFINITIONS = [
             { id: 'road_straight', name: 'Recta Ancha (4 Carriles)', category: 'roads', icon: 'fa-vector-square', size: [40, 1, 60], color: 0x1e293b },
-            { id: 'road_curve', name: 'Curva de Derrape 90°', category: 'roads', icon: 'fa-turn-up', size: [60, 1, 60], color: 0x1e293b },
+            { id: 'road_curve', name: 'Curva de Derrape 90° Real', category: 'roads', icon: 'fa-turn-up', size: [60, 1, 60], color: 0x1e293b },
             { id: 'road_intersection', name: 'Cruce 4 Vías', category: 'roads', icon: 'fa-table-cells-large', size: [60, 1, 60], color: 0x1e293b },
-            { id: 'road_ramp', name: 'Rampa de Ascenso / Salto', category: 'roads', icon: 'fa-chart-line', size: [30, 15, 60], color: 0x334155 },
-            { id: 'road_viaduct', name: 'Viaducto Elevado', category: 'roads', icon: 'fa-bridge', size: [40, 30, 80], color: 0x475569 },
+            { id: 'road_viaduct_ramp', name: 'Rampa Subida a Viaducto', category: 'roads', icon: 'fa-arrow-trend-up', size: [40, 25, 80], color: 0x334155 },
+            { id: 'road_ramp', name: 'Rampa de Salto / Acrobacia', category: 'roads', icon: 'fa-chart-line', size: [30, 15, 60], color: 0x334155 },
+            { id: 'road_viaduct', name: 'Viaducto Elevado (con Columnas)', category: 'roads', icon: 'fa-bridge', size: [40, 25, 80], color: 0x475569 },
 
             { id: 'bld_skyscraper', name: 'Rascacielos Vidriado', category: 'buildings', icon: 'fa-building', size: [50, 120, 50], color: 0x0f172a },
-            { id: 'bld_tunnel', name: 'Edificio con Túnel', category: 'buildings', icon: 'fa-archway', size: [60, 70, 40], color: 0x1e1b4b },
+            { id: 'bld_tunnel', name: 'Edificio con Túnel Atravesable', category: 'buildings', icon: 'fa-archway', size: [60, 50, 40], color: 0x1e1b4b },
             { id: 'bld_mall', name: 'Centro Comercial (Mall)', category: 'buildings', icon: 'fa-store', size: [100, 30, 120], color: 0x311b92 },
-            { id: 'bld_block', name: 'Manzana de Cuadra Urbana', category: 'buildings', icon: 'fa-city', size: [80, 45, 80], color: 0x1e293b },
+            { id: 'bld_gas_station', name: 'Estación de Gasolina / Pits', category: 'buildings', icon: 'fa-gas-pump', size: [45, 14, 35], color: 0x0284c7 },
+            { id: 'bld_block', name: 'Manzana Urbana', category: 'buildings', icon: 'fa-city', size: [80, 45, 80], color: 0x1e293b },
 
+            { id: 'prop_tree_oak', name: 'Árbol Roble Low-Poly', category: 'props', icon: 'fa-tree', size: [12, 18, 12], color: 0x15803d },
+            { id: 'prop_tree_pine', name: 'Árbol Pino Low-Poly', category: 'props', icon: 'fa-tree', size: [10, 22, 10], color: 0x064e3b },
+            { id: 'prop_traffic_light', name: 'Semáforo Urbano', category: 'props', icon: 'fa-traffic-light', size: [4, 18, 6], color: 0x334155 },
+            { id: 'prop_trash_can', name: 'Tacho de Basura Low-Poly', category: 'props', icon: 'fa-trash-can', size: [3, 4, 3], color: 0x475569 },
+            { id: 'prop_light', name: 'Poste Neón de Luz', category: 'props', icon: 'fa-lightbulb', size: [2, 20, 2], color: 0x06b6d4 },
             { id: 'prop_finish_arch', name: 'Arco de Meta Holográfico', category: 'props', icon: 'fa-flag-checkered', size: [45, 20, 6], color: 0xe02484 },
             { id: 'prop_nitro', name: 'Cápsula Nitro (+30% Boost)', category: 'props', icon: 'fa-bolt', size: [6, 6, 6], color: 0xf59e0b },
-            { id: 'prop_barrier', name: 'Barrera de Impacto Rompible', category: 'props', icon: 'fa-shield-halved', size: [15, 6, 4], color: 0xef4444 },
-            { id: 'prop_light', name: 'Poste Neón de Luz', category: 'props', icon: 'fa-lightbulb', size: [2, 20, 2], color: 0x06b6d4 }
+            { id: 'prop_barrier', name: 'Barrera de Impacto', category: 'props', icon: 'fa-shield-halved', size: [15, 6, 4], color: 0xef4444 }
         ];
 
         // VARIABLES GLOBALES
@@ -499,6 +512,7 @@
         let carSpeed = 0;
         let nitroCharge = 100;
         let keysPressed = {};
+        let chaseCameraOffset = 0; // Offset para la cámara libre trasera
 
         window.onload = function() {
             init3DEngine();
@@ -690,44 +704,206 @@
             const [w, h, l] = overrideProps.dimensions || itemDef.size;
             const color = overrideProps.color !== undefined ? overrideProps.color : itemDef.color;
 
-            let mainMesh;
-            const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4, metalness: 0.2 });
+            const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5, metalness: 0.2, flatShading: true });
 
-            if (itemDef.category === 'roads') {
-                const geo = new THREE.BoxGeometry(w, h, l);
-                mainMesh = new THREE.Mesh(geo, material);
-                mainMesh.receiveShadow = true;
-                mainMesh.castShadow = true;
+            // CONSTRUCCIÓN PROCEDURAL DETALLADA DE MESHES
+            if (itemDef.id === 'road_curve') {
+                const outerR = Math.max(w, l);
+                const roadWidth = 35;
+                const innerR = Math.max(10, outerR - roadWidth);
+                const midR = (innerR + outerR) / 2;
+                
+                const shape = new THREE.Shape();
+                shape.absarc(0, 0, outerR, 0, Math.PI / 2, false);
+                shape.absarc(0, 0, innerR, Math.PI / 2, 0, true);
+                
+                const extrudeSettings = { depth: 1, bevelEnabled: false };
+                const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                geo.rotateX(-Math.PI / 2);
+                
+                // Centrado unificado del centroide de la bounding box
+                geo.computeBoundingBox();
+                const bbox = geo.boundingBox;
+                const centerX = (bbox.max.x + bbox.min.x) / 2;
+                const centerZ = (bbox.max.z + bbox.min.z) / 2;
+                geo.translate(-centerX, 0, -centerZ);
 
-                const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.8);
+                const curveMesh = new THREE.Mesh(geo, material);
+                curveMesh.receiveShadow = true;
+                curveMesh.castShadow = true;
+                group.add(curveMesh);
+
+                // Línea de carril neón central perfeccionada y alineada exacto con la calzada
+                const arcLineGeo = new THREE.RingGeometry(midR - 0.6, midR + 0.6, 32, 1, 0, Math.PI / 2);
+                arcLineGeo.rotateX(-Math.PI / 2);
+                arcLineGeo.translate(-centerX, 0.6, -centerZ);
+
+                const arcLineMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
+                const arcLine = new THREE.Mesh(arcLineGeo, arcLineMat);
+                group.add(arcLine);
+
+                // Línea de borde blanco exterior
+                const outerLineGeo = new THREE.RingGeometry(outerR - 1, outerR - 0.2, 32, 1, 0, Math.PI / 2);
+                outerLineGeo.rotateX(-Math.PI / 2);
+                outerLineGeo.translate(-centerX, 0.61, -centerZ);
+                const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+                const outerLine = new THREE.Mesh(outerLineGeo, whiteMat);
+                group.add(outerLine);
+
+            } else if (itemDef.id === 'road_viaduct_ramp') {
+                const shape = new THREE.Shape();
+                shape.moveTo(-l / 2, -h / 2);
+                shape.lineTo(l / 2, h / 2);
+                shape.lineTo(l / 2, -h / 2);
+                shape.closePath();
+
+                const extrudeSettings = { depth: w, bevelEnabled: false };
+                const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                geo.rotateY(Math.PI / 2);
+                geo.center();
+
+                const rampMesh = new THREE.Mesh(geo, material);
+                rampMesh.castShadow = true;
+                rampMesh.receiveShadow = true;
+                group.add(rampMesh);
+
+                // Demarcación de carril en la pendiente de la rampa
+                const stripeGeo = new THREE.BoxGeometry(1, 0.2, l * 0.95);
                 const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
                 const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                stripe.position.y = h / 2 + 0.1;
+                stripe.rotation.x = -Math.atan2(h, l);
+                stripe.position.y = 0.6;
                 group.add(stripe);
 
-            } else if (itemDef.category === 'buildings') {
-                const geo = new THREE.BoxGeometry(w, h, l);
-                mainMesh = new THREE.Mesh(geo, material);
-                mainMesh.castShadow = true;
-                mainMesh.receiveShadow = true;
+                // Columnas de soporte progresivas en la subida
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+                const numPillars = 3;
+                for (let i = 1; i <= numPillars; i++) {
+                    const frac = i / (numPillars + 1);
+                    const pZ = -l / 2 + frac * l;
+                    const currentH = frac * h;
+                    if (currentH > 2) {
+                        const pillarGeo = new THREE.CylinderGeometry(1.5, 2, currentH, 8);
+                        const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+                        pillar.position.set(0, currentH / 2 - h / 2, pZ);
+                        pillar.castShadow = true;
+                        group.add(pillar);
+                    }
+                }
 
-                const winGeo = new THREE.BoxGeometry(w * 0.9, h * 0.8, l * 0.9);
-                const winMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
-                const windows = new THREE.Mesh(winGeo, winMat);
-                group.add(windows);
+            } else if (itemDef.id === 'road_ramp') {
+                const rightTower = new THREE.Mesh(rightTowerGeo, material);
+                rightTower.position.x = w / 2 - towerWidth / 2;
+                rightTower.castShadow = true;
+
+                const topBridge = new THREE.Mesh(topBridgeGeo, material);
+                topBridge.position.y = tunnelHeight / 2;
+                topBridge.castShadow = true;
+
+                group.add(leftTower);
+                group.add(rightTower);
+                group.add(topBridge);
+
+                // Luz neón de túnel
+                const light = new THREE.PointLight(0x06b6d4, 3, 30);
+                light.position.set(0, -h / 2 + tunnelHeight / 2, 0);
+                group.add(light);
+
+            } else if (itemDef.id === 'prop_tree_oak') {
+                // ÁRBOL ROBLE LOW-POLY
+                const trunkGeo = new THREE.CylinderGeometry(0.8, 1.2, h * 0.4, 6);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9, flatShading: true });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = -h / 2 + (h * 0.4) / 2;
+                trunk.castShadow = true;
+
+                const foliageGeo = new THREE.IcosahedronGeometry(w / 2, 1);
+                const foliageMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7, flatShading: true });
+                const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+                foliage.position.y = trunk.position.y + (h * 0.4);
+                foliage.castShadow = true;
+
+                group.add(trunk);
+                group.add(foliage);
+
+            } else if (itemDef.id === 'prop_tree_pine') {
+                // ÁRBOL PINO LOW-POLY
+                const trunkGeo = new THREE.CylinderGeometry(0.6, 0.9, h * 0.3, 6);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9, flatShading: true });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = -h / 2 + (h * 0.3) / 2;
+
+                const foliageMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, flatShading: true });
+                
+                [0.8, 0.6, 0.4].forEach((scale, idx) => {
+                    const coneGeo = new THREE.ConeGeometry(w / 2 * scale, h * 0.3, 6);
+                    const cone = new THREE.Mesh(coneGeo, foliageMat);
+                    cone.position.y = trunk.position.y + 3 + (idx * 4);
+                    cone.castShadow = true;
+                    group.add(cone);
+                });
+
+                group.add(trunk);
+
+            } else if (itemDef.id === 'prop_traffic_light') {
+                // SEMÁFORO URBANO LOW-POLY
+                const poleGeo = new THREE.CylinderGeometry(0.3, 0.4, h, 8);
+                const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 });
+                const pole = new THREE.Mesh(poleGeo, poleMat);
+
+                const boxGeo = new THREE.BoxGeometry(2, 5, 1.5);
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+                const box = new THREE.Mesh(boxGeo, boxMat);
+                box.position.set(1, h / 2 - 3, 0);
+
+                const colors = [0xef4444, 0xf59e0b, 0x22c55e];
+                colors.forEach((c, i) => {
+                    const bulbGeo = new THREE.SphereGeometry(0.4, 8, 8);
+                    const bulbMat = new THREE.MeshBasicMaterial({ color: c });
+                    const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+                    bulb.position.set(1, h / 2 - 1.8 - (i * 1.2), 0.8);
+                    group.add(bulb);
+                });
+
+                group.add(pole);
+                group.add(box);
+
+            } else if (itemDef.id === 'prop_trash_can') {
+                // TACHO DE BASURA LOW-POLY
+                const binGeo = new THREE.CylinderGeometry(w / 2, w / 2.2, h, 10);
+                const binMesh = new THREE.Mesh(binGeo, material);
+                binMesh.castShadow = true;
+
+                const lidGeo = new THREE.CylinderGeometry(w / 1.8, w / 1.8, 0.5, 10);
+                const lidMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+                const lid = new THREE.Mesh(lidGeo, lidMat);
+                lid.position.y = h / 2 + 0.25;
+
+                group.add(binMesh);
+                group.add(lid);
 
             } else {
+                // MODELO GENÉRICO BASE (Rectas, Edificios, Props Simples)
                 const geo = new THREE.BoxGeometry(w, h, l);
-                mainMesh = new THREE.Mesh(geo, material);
+                const mainMesh = new THREE.Mesh(geo, material);
+                mainMesh.receiveShadow = true;
                 mainMesh.castShadow = true;
 
-                if (itemDef.id === 'prop_nitro') {
-                    const light = new THREE.PointLight(0xf59e0b, 2, 20);
-                    group.add(light);
+                if (itemDef.category === 'roads') {
+                    const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.8);
+                    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+                    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                    stripe.position.y = h / 2 + 0.1;
+                    group.add(stripe);
+                } else if (itemDef.category === 'buildings') {
+                    const winGeo = new THREE.BoxGeometry(w * 0.9, h * 0.8, l * 0.9);
+                    const winMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
+                    const windows = new THREE.Mesh(winGeo, winMat);
+                    group.add(windows);
                 }
-            }
 
-            group.add(mainMesh);
+                group.add(mainMesh);
+            }
 
             group.userData = {
                 typeId: itemDef.id,
@@ -990,13 +1166,17 @@
         }
 
         function onMouseDown(e) {
-            if (isTestingDrive) return;
-
             const rect = renderer.domElement.getBoundingClientRect();
             mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-            if (e.button === 0) { // Click Izquierdo
+            if (e.button === 2 || isTestingDrive) { // Click Derecho o cualquier click en Prueba (para cámara libre)
+                isOrbiting = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                if (isTestingDrive) return; // Salir para no procesar selección ni mover bloques en Prueba
+            }
+
+            if (e.button === 0) { // Click Izquierdo (Modo Editor)
                 raycaster.setFromCamera(mouse, camera);
 
                 // Check Gizmo intersection if in rotate mode
@@ -1039,15 +1219,27 @@
                         deselectObject();
                     }
                 }
-
-            } else if (e.button === 2) { // Click Derecho
-                isOrbiting = true;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
             }
         }
 
         function onMouseMove(e) {
-            if (isTestingDrive) return;
+            if (isOrbiting) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                if (isTestingDrive) {
+                    chaseCameraOffset -= deltaX * 0.005;
+                    cameraPhi -= deltaY * 0.005;
+                } else {
+                    cameraTheta -= deltaX * 0.005;
+                    cameraPhi -= deltaY * 0.005;
+                    updateCameraPosition();
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                return;
+            }
+
+            if (isTestingDrive) return; // Bloquear arrastre de objetos al probar pista
 
             if (activeGizmoAxis && selectedObject) {
                 const deltaX = e.clientX - gizmoStartMouse.x;
@@ -1072,17 +1264,6 @@
                 }
                 return;
             }
-
-            if (isOrbiting) {
-                const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-
-                cameraTheta -= deltaX * 0.005;
-                cameraPhi -= deltaY * 0.005;
-
-                updateCameraPosition();
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            }
         }
 
         function onMouseUp() {
@@ -1098,7 +1279,6 @@
         }
 
         function onTouchStart(e) {
-            if (isTestingDrive) return;
             e.preventDefault();
 
             if (e.touches.length === 1) {
@@ -1121,7 +1301,6 @@
         }
 
         function onTouchMove(e) {
-            if (isTestingDrive) return;
             e.preventDefault();
 
             if (e.touches.length === 1 && !isTouchPinching) {
@@ -1139,13 +1318,12 @@
                     const factor = (initialTouchDistance - currentDistance) * 0.5;
                     cameraRadius = Math.max(20, Math.min(500, cameraRadius + factor));
                     initialTouchDistance = currentDistance;
-                    updateCameraPosition();
+                    if (!isTestingDrive) updateCameraPosition();
                 }
             }
         }
 
         function onTouchEnd(e) {
-            if (isTestingDrive) return;
             if (e.touches.length === 0) {
                 isTouchPinching = false;
                 onMouseUp();
@@ -1155,17 +1333,36 @@
         function createTestCarMesh() {
             carMesh = new THREE.Group();
 
+            // Cuerpo principal del auto
             const bodyGeo = new THREE.BoxGeometry(6, 2.5, 12);
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe02484, roughness: 0.2, metalness: 0.8 });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
             body.position.y = 1.5;
             carMesh.add(body);
 
+            // Cabina (Desplazada hacia atrás en +Z, asegurando que el morro largo sea visualmente el frente -Z)
             const cabinGeo = new THREE.BoxGeometry(4.5, 1.8, 6);
             const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
             const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-            cabin.position.set(0, 3.2, -0.5);
+            cabin.position.set(0, 3.2, 1.5); 
             carMesh.add(cabin);
+
+            // Faros Delanteros Blancos (Frente es -Z)
+            const hlGeo = new THREE.BoxGeometry(1.5, 0.5, 0.5);
+            const hlMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const hlLeft = new THREE.Mesh(hlGeo, hlMat);
+            hlLeft.position.set(-2, 1.5, -6);
+            const hlRight = new THREE.Mesh(hlGeo, hlMat);
+            hlRight.position.set(2, 1.5, -6);
+            carMesh.add(hlLeft, hlRight);
+
+            // Faros Traseros Rojos (Atrás es +Z)
+            const tlMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const tlLeft = new THREE.Mesh(hlGeo, tlMat);
+            tlLeft.position.set(-2, 1.5, 6);
+            const tlRight = new THREE.Mesh(hlGeo, tlMat);
+            tlRight.position.set(2, 1.5, 6);
+            carMesh.add(tlLeft, tlRight);
 
             carMesh.visible = false;
             scene.add(carMesh);
@@ -1180,14 +1377,34 @@
             isTestingDrive = true;
             deselectObject();
 
-            carMesh.position.set(sceneObjects[0].position.x, sceneObjects[0].position.y + 3, sceneObjects[0].position.z);
-            carMesh.rotation.set(0, 0, 0);
+            let startObj = sceneObjects[0];
+            carMesh.position.set(startObj.position.x, startObj.position.y + 3, startObj.position.z);
+            carMesh.rotation.set(0, startObj.rotation.y, 0); // Alinear el coche con la dirección de la pista
             carMesh.visible = true;
 
             carSpeed = 0;
             nitroCharge = 100;
+            chaseCameraOffset = 0; // Resetear el ángulo de cámara libre
+            
+            // Posicionar la cámara trasera (Chase Cam) perfecta
+            cameraTheta = carMesh.rotation.y;
+            cameraPhi = 1.35; // Ángulo bajo pegado a la calle
+            cameraRadius = 35; // Distancia más corta
+            updateCameraPosition();
 
             document.getElementById('driveHud').classList.remove('hidden');
+            
+            // Ocultar Interfaz del Editor de Mapas
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('statusHud').classList.add('hidden');
+            document.getElementById('floatingCamControls').classList.add('hidden');
+            document.getElementById('leftSidebar').classList.add('hidden');
+            document.getElementById('rightSidebar').classList.add('hidden');
+            document.getElementById('btnOpenLeftSidebar').classList.add('hidden');
+            document.getElementById('btnOpenRightSidebar').classList.add('hidden');
+            
+            setTimeout(onWindowResize, 50);
+
             showToast("Modo Prueba de Conducción Activo", "success");
         }
 
@@ -1195,6 +1412,15 @@
             isTestingDrive = false;
             if (carMesh) carMesh.visible = false;
             document.getElementById('driveHud').classList.add('hidden');
+
+            // Restaurar Interfaz del Editor
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('statusHud').classList.remove('hidden');
+            document.getElementById('floatingCamControls').classList.remove('hidden');
+            document.getElementById('leftSidebar').classList.remove('hidden');
+            document.getElementById('rightSidebar').classList.remove('hidden');
+            
+            setTimeout(onWindowResize, 50);
 
             cameraTarget.set(0, 0, 0);
             cameraRadius = 150;
@@ -1256,9 +1482,16 @@
             carMesh.position.addScaledVector(forward, carSpeed * 0.02);
 
             cameraTarget.copy(carMesh.position);
-            cameraRadius = 45;
-            cameraTheta = carMesh.rotation.y + Math.PI;
-            cameraPhi = Math.PI / 6;
+            cameraRadius = 35;
+            
+            // Si hay movimiento y soltamos la cámara libre, interpolar suavemente hacia atrás del auto
+            if (!isOrbiting && Math.abs(carSpeed) > 5) {
+                chaseCameraOffset *= 0.95;
+                cameraPhi += (1.35 - cameraPhi) * 0.05; // Auto-centrar también la altura
+            }
+            
+            cameraTheta = carMesh.rotation.y + chaseCameraOffset;
+            
             updateCameraPosition();
 
             document.getElementById('hudSpeed').innerText = `${Math.round(Math.abs(carSpeed))} MPH`;
