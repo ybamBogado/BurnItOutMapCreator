@@ -301,7 +301,7 @@
 
         <!-- CONTENEDOR VISOR 3D (CANVAS INSET) -->
         <div id="canvasViewport" class="flex-1 h-full relative clay-inset overflow-hidden rounded-[32px]">
-            <canvas id="threeCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+            <canvas id="threeCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing touch-none"></canvas>
 
             <!-- BOTONES FLOTANTES DE RESTAURACIÓN DE PANELS -->
             <button id="btnRestoreLeft" onclick="toggleLeftSidebar()" title="Mostrar Catálogo" class="hidden absolute top-4 left-4 z-30 w-11 h-11 rounded-2xl clay-panel text-slate-300 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
@@ -1887,83 +1887,8 @@
         }
 
         // ==========================================
-        // CONCEPTO PREDISEÑADO INTERACTIVO: CALCHAQUÍ / UNAJ
+        // EXPORTACIÓN A ROBLOX LUAU SCRIPT
         // ==========================================
-        function clearEditableMap() {
-            [...sceneObjects].forEach(obj => scene.remove(obj));
-            sceneObjects = [];
-            deselectObject();
-            updateObjectCountUI();
-        }
-
-        function addConceptObject(id, x, y, z, rotY = 0, extraProps = {}) {
-            const itemDef = ITEM_DEFINITIONS.find(item => item.id === id);
-            if (!itemDef) return null;
-            return createSceneObject(itemDef, { posX: x, posY: y, posZ: z }, { ...extraProps, rotY });
-        }
-
-        function loadCalchaquiUnajConcept() {
-            if (!scene) return;
-            clearEditableMap();
-
-            // Predio abierto: un edificio articulado rodea el patio y los anexos quedan separados.
-            addConceptObject('prop_green_space', 0, 0.15, 4, 0);
-            addConceptObject('bld_campus', 0, 16, 30, 0);
-            addConceptObject('bld_classroom', -67, 5, -24, -0.10);
-            addConceptObject('bld_pavilion_long', -28, 6.5, -58, 0);
-            addConceptObject('bld_classroom', 13, 5, -56, 0.05);
-            addConceptObject('bld_service', 58, 6.5, -42, 0.12);
-            addConceptObject('prop_parking', -82, 0.5, -30, 0.08);
-            addConceptObject('prop_walkway', -43, 6, -8, 0.0);
-            addConceptObject('prop_walkway', 38, 6, -8, 0.0);
-            addConceptObject('prop_green_space', 88, 0.15, -38, 0);
-
-            // Pocas vías perimetrales: borde norte, corredor este y borde sur.
-            [[-100, 108], [-22, 108], [56, 108]].forEach(([x, z]) =>
-                addConceptObject('road_avenue', x, 0.5, z, Math.PI / 2)
-            );
-            [[130, -58], [130, 20], [130, 98]].forEach(([x, z]) =>
-                addConceptObject('road_avenue', x, 0.5, z, 0)
-            );
-            [[-100, -100], [-22, -100], [56, -100]].forEach(([x, z]) =>
-                addConceptObject('road_avenue', x, 0.5, z, Math.PI / 2)
-            );
-            addConceptObject('road_roundabout', 130, 0.5, 108, 0);
-            addConceptObject('road_local', 96, 0.5, 108, Math.PI / 2);
-            addConceptObject('road_local', 96, 0.5, -100, Math.PI / 2);
-
-            // Avenida diagonal exterior conectada visualmente al borde norte.
-            const diagonalAvenue = Math.PI / 4;
-            [[-160, 42], [-105, 97]].forEach(([x, z]) =>
-                addConceptObject('road_avenue', x, 0.5, z, diagonalAvenue)
-            );
-
-            // Ciudad e infraestructura fuera del campus.
-            [[-200, 25, -40], [-200, 25, 160], [205, 25, -48], [215, 25, 165]].forEach(([x, y, z]) =>
-                addConceptObject('bld_block', x, y, z, 0)
-            );
-            addConceptObject('bld_glass_office', -25, 14, 166, 0);
-            addConceptObject('bld_cyan_block', 58, 8, 166, 0);
-            addConceptObject('prop_gas_station', 176, 8, -112, Math.PI / 2);
-
-            [[-94, 7, 108], [130, 7, 72], [130, 7, -86]].forEach(([x, y, z]) =>
-                addConceptObject('prop_traffic_light', x, y, z, 0)
-            );
-            [[-62, 9, 70], [-35, 9, 78], [34, 9, 72], [62, 9, 40], [-74, 9, -4], [68, 9, -18], [88, 9, -50]].forEach(([x, y, z]) =>
-                addConceptObject('prop_tree_oak', x, y, z, 0)
-            );
-            [[-74, 3, -94], [0, 3, -94], [76, 3, -94], [130, 3, 50]].forEach(([x, y, z]) =>
-                addConceptObject('prop_nitro', x, y, z, 0)
-            );
-
-            cameraTarget.set(0, 0, 8);
-            cameraRadius = 300;
-            cameraTheta = Math.PI / 4;
-            cameraPhi = Math.PI / 3.4;
-            updateCameraPosition();
-            showToast('Concepto UNAJ cargado exitosamente en el editor', 'success');
-        }
-
         function exportLuauScript() {
             let scriptContent = `-- Burnout Roblox Studio Map Exporter (Data-Driven V2.6 Clay)
 -- Generado automáticamente desde Burnout Studio 3D
