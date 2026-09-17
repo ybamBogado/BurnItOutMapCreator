@@ -1,765 +1,842 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<html lang="es" class="h-full bg-[#262938] text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Editor de Mapas 3D - Burnout Roblox</title>
+    <title>Burnout Studio 3D - Claymorphism Editor</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js (r128) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        burnout: {
-                            pink: '#e02484',
-                            pinkHover: '#ff389b',
-                            cyan: '#06b6d4',
-                            dark: '#090d16',
-                            panel: '#111827',
-                            border: '#1f2937'
-                        }
+                        'burnout-pink': '#ec4899',
+                        'burnout-purple': '#8b5cf6',
+                        'burnout-cyan': '#06b6d4',
+                        'burnout-amber': '#f59e0b',
+                        'clay-bg': '#262938',
+                        'clay-panel': '#2d3142'
                     }
                 }
             }
-        }
+        };
     </script>
+
+    <!-- Font Awesome JS (SVG rendering for perfect icons) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Three.js 3D Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Fira+Code:wght@500;700&display=swap');
+        
+        :root {
+            --bg-color: #262938;
+            --panel-bg: #2d3142;
+            --shadow-dark: rgba(15, 17, 26, 0.6);
+            --shadow-light: rgba(255, 255, 255, 0.05);
+            
+            --clay-pink: #ec4899;
+            --clay-green: #10b981;
+            --clay-cyan: #06b6d4;
+            --clay-purple: #8b5cf6;
+            --clay-amber: #f59e0b;
+            --clay-rose: #ef4444;
+        }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
+            background-color: var(--bg-color);
+        }
+
+        .font-mono { font-family: 'Fira Code', monospace; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 4px; box-shadow: inset 2px 2px 4px var(--shadow-dark); }
+        ::-webkit-scrollbar-thumb { background: #3f445c; border-radius: 4px; box-shadow: 1px 1px 2px var(--shadow-light); }
+        ::-webkit-scrollbar-thumb:hover { background: #505673; }
+
+        /* Ocultar barras de scroll nativas en contenedores específicos */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ==========================================
+           CLAYMORPHISM CORE CLASSES 
+           ========================================== */
+           
+        /* Main Puffy Panel */
+        .clay-panel {
+            background: var(--panel-bg);
+            border-radius: 24px;
+            box-shadow: 
+                10px 10px 20px var(--shadow-dark), 
+                -10px -10px 20px var(--shadow-light), 
+                inset 2px 2px 5px rgba(255,255,255,0.06), 
+                inset -3px -3px 8px rgba(0,0,0,0.25);
+            border: none;
+        }
+
+        /* Inset/Carved Hole (For Canvas, Inputs, Lists) */
+        .clay-inset {
+            background: var(--bg-color);
+            border-radius: 16px;
+            box-shadow: 
+                inset 4px 4px 8px var(--shadow-dark), 
+                inset -4px -4px 8px var(--shadow-light);
+            border: none;
+        }
+
+        /* Standard Puffy Button */
+        .clay-btn {
+            background: var(--panel-bg);
+            border-radius: 14px;
+            box-shadow: 
+                4px 4px 10px var(--shadow-dark), 
+                -4px -4px 10px var(--shadow-light), 
+                inset 1px 1px 3px rgba(255,255,255,0.08), 
+                inset -2px -2px 4px rgba(0,0,0,0.2);
+            border: none;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #cbd5e1; /* slate-300 */
+            cursor: pointer;
+        }
+        .clay-btn:hover {
+            color: white;
+            transform: translateY(-1px);
+        }
+        .clay-btn:active {
+            box-shadow: 
+                inset 4px 4px 8px var(--shadow-dark), 
+                inset -4px -4px 8px var(--shadow-light);
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Colored Puffy Buttons */
+        .clay-btn-pink { background: var(--clay-pink); color: white; box-shadow: 5px 5px 15px rgba(236,72,153,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-pink:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        .clay-btn-cyan { background: var(--clay-cyan); color: white; box-shadow: 5px 5px 15px rgba(6,182,212,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-cyan:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        .clay-btn-purple { background: var(--clay-purple); color: white; box-shadow: 5px 5px 15px rgba(139,92,246,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-purple:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        .clay-btn-green { background: var(--clay-green); color: white; box-shadow: 5px 5px 15px rgba(16,185,129,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-green:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        .clay-btn-rose { background: var(--clay-rose); color: white; box-shadow: 5px 5px 15px rgba(239,68,68,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-rose:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        .clay-btn-amber { background: var(--clay-amber); color: white; box-shadow: 5px 5px 15px rgba(245,158,11,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
+        .clay-btn-amber:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
+
+        /* Catalog Item Card */
+        .clay-card {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            box-shadow: 
+                4px 4px 10px var(--shadow-dark), 
+                -4px -4px 10px var(--shadow-light),
+                inset 1px 1px 2px rgba(255,255,255,0.05), 
+                inset -2px -2px 4px rgba(0,0,0,0.15);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .clay-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 14px var(--shadow-dark), 
+                -6px -6px 14px var(--shadow-light),
+                inset 1px 1px 3px rgba(255,255,255,0.08), 
+                inset -2px -2px 5px rgba(0,0,0,0.15);
+        }
+        .clay-card.active {
+            background: #393145; /* Slight tint */
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -3px -3px 6px rgba(255,255,255,0.04);
+            transform: translateY(1px);
+        }
+
+        /* Clay Text Input */
+        .clay-input-text {
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+            border: none;
+            outline: none;
+            color: white;
+            padding: 4px 8px;
+        }
+
+        /* Custom Range Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            margin: 8px 0;
+        }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 12px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            margin-top: -4px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.4), inset -2px -2px 4px rgba(0,0,0,0.2);
         }
         
-        /* Custom scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #e02484;
-        }
+        /* Thumb Colors dynamically assigned via classes or IDs in HTML */
+        #slidePosX::-webkit-slider-thumb, #slideRotX::-webkit-slider-thumb { background: var(--clay-rose); }
+        #slidePosY::-webkit-slider-thumb, #slideRotY::-webkit-slider-thumb { background: var(--clay-green); }
+        #slidePosZ::-webkit-slider-thumb, #slideRotZ::-webkit-slider-thumb { background: var(--clay-cyan); }
+        #slideHoleW::-webkit-slider-thumb, #slideHoleH::-webkit-slider-thumb { background: var(--clay-amber); }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #canvas3DContainer, #canvas3DContainer canvas {
-            width: 100% !important;
-            height: 100% !important;
-            display: block;
-            touch-action: none;
-        }
-
-        input[type=range] {
-            accent-color: #e02484;
-        }
-
-        .touch-btn {
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        .touch-btn:active {
-            transform: scale(0.92);
+        .sidebar-transition {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
 </head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
 
-    <header id="mainHeader" class="min-h-14 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between px-3 py-2 gap-2 z-20 shrink-0">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-burnout-pink to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-burnout-pink/30 shrink-0">
-                <i class="fa-solid fa-road text-sm"></i>
+<body class="h-full w-full flex flex-col bg-clay-bg text-slate-100 overflow-hidden">
+
+    <!-- ENCABEZADO PRINCIPAL (HEADER) -->
+    <header id="mainHeader" class="clay-panel mx-4 mt-4 h-16 px-4 flex items-center justify-between z-30 shrink-0 gap-2">
+        <!-- Logo & Título -->
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-burnout-pink to-burnout-purple flex items-center justify-center shadow-lg shadow-burnout-pink/20" style="box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(255,255,255,0.3)">
+                <i class="fa-solid fa-car-burst text-white text-lg"></i>
             </div>
-            <div>
-                <h1 class="text-xs sm:text-sm font-black text-white tracking-wide uppercase italic flex items-center gap-1.5">
-                    Burnout Studio
-                    <span class="text-[10px] font-mono px-1.5 py-0.5 bg-burnout-pink/20 text-burnout-pink border border-burnout-pink/30 rounded hidden sm:inline">3D v2.5</span>
-                </h1>
-                <p class="text-[10px] text-slate-400 font-mono hidden md:block">Diseñador de Circuitos con Gizmos 3D</p>
+            <div class="flex items-center gap-2">
+                <h1 class="font-black italic tracking-wider text-sm sm:text-[15px] bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent uppercase drop-shadow-md whitespace-nowrap">BURNOUT STUDIO</h1>
             </div>
         </div>
 
-        <!-- SELECTOR DE MODOS -->
-        <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 overflow-x-auto">
-            <button id="btnModeSelect" onclick="setEditorMode('select')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-burnout-pink text-white shadow-md">
-                <i class="fa-solid fa-pointer text-xs"></i>
+        <!-- Selector de Modos Central (Sin scrollbars feas) -->
+        <div class="flex items-center clay-inset p-1.5 gap-1.5 overflow-x-auto no-scrollbar">
+            <button id="btnModeSelect" onclick="setEditorMode('select')" class="clay-btn-pink px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-arrow-pointer text-xs"></i>
                 <span class="hidden sm:inline">Seleccionar</span>
             </button>
-            <button id="btnModeMove" onclick="setEditorMode('move')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-arrows-up-down-left-right text-xs"></i>
-                <span class="hidden sm:inline">Mover 3D</span>
+            <button id="btnModeMove" onclick="setEditorMode('move')" class="clay-btn px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-up-down-left-right text-xs"></i>
+                <span class="hidden sm:inline">Mover</span>
             </button>
-            <button id="btnModeRotate" onclick="setEditorMode('rotate')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+            <button id="btnModeRotate" onclick="setEditorMode('rotate')" class="clay-btn px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-rotate text-xs"></i>
-                <span class="hidden sm:inline">Rotar 3D (Gizmo)</span>
+                <span class="hidden sm:inline">Rotar</span>
             </button>
-            <div class="w-px h-5 bg-slate-800 mx-0.5"></div>
-            <button id="btnModeDrive" onclick="startTestDrive()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 hover:bg-emerald-950/40 border border-emerald-500/30 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-car text-xs"></i>
-                <span class="hidden sm:inline">Probar Pista</span>
+            <div class="h-6 w-1 rounded-full bg-[#1e202e] mx-0.5 shrink-0 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.5)]"></div>
+            <button id="btnModeDrive" onclick="startTestDrive()" class="clay-btn-green px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-gamepad text-xs"></i>
+                <span>Probar</span>
             </button>
         </div>
 
-        <!-- BOTONES DE ACCIÓN RÁPIDA -->
-        <div class="flex items-center gap-1.5">
-            <button onclick="clearMapPrompt()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Vaciar mapa">
-                <i class="fa-solid fa-trash-can"></i>
-                <span class="hidden lg:inline">Vaciar</span>
+        <!-- Acciones de Archivo -->
+        <div class="flex items-center gap-2 shrink-0">
+            <button onclick="saveMapJson()" title="Guardar Mapa (JSON)" class="clay-btn w-9 h-9 flex items-center justify-center text-slate-300">
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
             </button>
-            
-            <button onclick="exportLuauScript()" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold shadow-md shadow-purple-600/20 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-code"></i>
-                <span class="hidden sm:inline">Exportar Luau</span>
-            </button>
-
-            <button onclick="downloadHtmlMap()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Descargar HTML">
-                <i class="fa-solid fa-download"></i>
-                <span class="hidden xl:inline">Descargar HTML</span>
+            <label title="Cargar Mapa (JSON)" class="clay-btn w-9 h-9 flex items-center justify-center text-slate-300 m-0 cursor-pointer">
+                <i class="fa-solid fa-folder-open text-xs"></i>
+                <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="loadMapJson(event)">
+            </label>
+            <button onclick="exportLuauScript()" title="Exportar Script Luau para Roblox" class="clay-btn-purple px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 h-9">
+                <i class="fa-solid fa-code text-xs"></i>
+                <span class="hidden md:inline">Luau</span>
             </button>
         </div>
     </header>
 
-    <div class="flex-1 flex relative overflow-hidden">
+    <!-- ÁREA DE TRABAJO PRINCIPAL -->
+    <div class="flex-1 flex relative overflow-hidden px-4 pb-4 gap-4 mt-4">
 
-        <!-- SIDEBAR IZQUIERDO: CATÁLOGO DE ELEMENTOS -->
-        <aside id="leftSidebar" class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-10 relative shrink-0 transition-all duration-300">
-            <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-boxes-stacked text-burnout-pink text-xs"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Catálogo de Piezas</span>
+        <!-- CATÁLOGO LATERAL IZQUIERDO -->
+        <aside id="leftSidebar" class="sidebar-transition w-72 h-full clay-panel flex flex-col z-20 relative shrink-0 overflow-hidden">
+            <!-- Header de Catálogo -->
+            <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-slate-200">
+                    <div class="w-7 h-7 rounded-lg clay-inset flex items-center justify-center">
+                        <i class="fa-solid fa-boxes-stacked text-burnout-pink"></i>
+                    </div>
+                    <span>Catálogo de Piezas</span>
                 </div>
-                <button onclick="toggleLeftSidebar()" class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition" title="Ocultar panel">
-                    <i class="fa-solid fa-chevron-left"></i>
+                <button onclick="toggleLeftSidebar()" title="Ocultar Panel" class="clay-btn w-8 h-8 flex items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
                 </button>
             </div>
 
-            <!-- Selector de Categorías -->
-            <div class="flex border-b border-slate-800 bg-slate-950/30 text-xs font-bold text-slate-400">
-                <button onclick="setCategory('roads')" id="tab-roads" class="flex-1 py-2 text-center border-b-2 border-burnout-pink text-white">Vías</button>
-                <button onclick="setCategory('buildings')" id="tab-buildings" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-200">Ciudad</button>
-                <button onclick="setCategory('props')" id="tab-props" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-200">Props</button>
+            <!-- Pestañas del Catálogo -->
+            <div class="clay-inset p-1.5 mx-4 mb-2 flex text-xs font-bold">
+                <button id="tabRoads" onclick="switchCategory('roads')" class="clay-btn-pink flex-1 py-2 text-center rounded-xl transition">Vías</button>
+                <button id="tabBuildings" onclick="switchCategory('buildings')" class="clay-btn flex-1 py-2 text-center rounded-xl transition shadow-none bg-transparent">Ciudad</button>
+                <button id="tabProps" onclick="switchCategory('props')" class="clay-btn flex-1 py-2 text-center rounded-xl transition shadow-none bg-transparent">Props</button>
             </div>
 
-            <div id="catalogContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Inyectado dinámicamente mediante JS -->
+            <!-- Lista de Piezas -->
+            <div id="catalogContainer" class="flex-1 overflow-y-auto px-4 py-2 space-y-3 pb-6">
+                <!-- Se llena dinámicamente con JS -->
             </div>
 
-            <div class="p-2.5 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-400 font-mono space-y-1">
-                <div class="flex justify-between"><span>Click Izq / Tap:</span><span class="text-slate-200">Seleccionar / Girar</span></div>
-                <div class="flex justify-between"><span>Click Der / 1 Dedo:</span><span class="text-slate-200">Rotar Cámara</span></div>
-                <div class="flex justify-between"><span>Pinch 2 Dedos:</span><span class="text-slate-200">Zoom / Pan</span></div>
+            <!-- Tip Info -->
+            <div class="p-4 clay-inset rounded-none rounded-b-[24px] text-[11px] text-slate-400 flex items-center gap-3">
+                <div class="w-6 h-6 rounded-full clay-panel flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-info text-burnout-cyan text-[10px]"></i>
+                </div>
+                <span class="leading-tight">Haz clic en una pieza para entrar en <strong>Modo Colocación (Estampar)</strong>.</span>
             </div>
         </aside>
 
-        <!-- Botón flotante para reabrir Sidebar Izquierdo -->
-        <button id="btnOpenLeftSidebar" onclick="toggleLeftSidebar()" class="hidden absolute top-3 left-3 z-20 w-9 h-9 glass-panel rounded-lg text-slate-300 hover:text-white hover:border-burnout-pink/50 flex items-center justify-center shadow-lg transition">
-            <i class="fa-solid fa-boxes-stacked text-xs"></i>
-        </button>
+        <!-- CONTENEDOR VISOR 3D (CANVAS INSET) -->
+        <div id="canvasViewport" class="flex-1 h-full relative clay-inset overflow-hidden rounded-[32px]">
+            <canvas id="threeCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
 
-        <main class="flex-1 relative bg-slate-950 overflow-hidden">
-            <div id="canvas3DContainer" class="w-full h-full"></div>
+            <!-- BOTONES FLOTANTES DE RESTAURACIÓN DE PANELS -->
+            <button id="btnRestoreLeft" onclick="toggleLeftSidebar()" title="Mostrar Catálogo" class="hidden absolute top-4 left-4 z-30 w-11 h-11 rounded-2xl clay-panel text-slate-300 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
+                <i class="fa-solid fa-boxes-stacked text-base text-burnout-pink"></i>
+            </button>
 
-            <!-- HUD de Estado -->
-            <div id="statusHud" class="absolute top-3 left-1/2 -translate-x-1/2 glass-panel px-4 py-1.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 pointer-events-none z-10">
-                <span class="flex items-center gap-1.5">
-                    <span id="modeDot" class="w-2 h-2 rounded-full bg-burnout-pink animate-pulse"></span>
-                    Modo: <strong id="modeStatusText" class="text-white uppercase font-bold">Selección</strong>
+            <button id="btnRestoreRight" onclick="toggleRightSidebar()" title="Mostrar Inspector" class="hidden absolute top-4 right-4 z-30 w-11 h-11 rounded-2xl clay-panel text-slate-300 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
+                <i class="fa-solid fa-sliders text-base text-burnout-purple"></i>
+            </button>
+
+            <!-- HUD Estado Modo / Stamp Overlay -->
+            <div id="statusHud" class="absolute top-4 left-1/2 -translate-x-1/2 clay-panel px-6 py-2.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-4 pointer-events-none z-10">
+                <span class="flex items-center gap-2">
+                    <span id="modeDot" class="w-2.5 h-2.5 rounded-full bg-burnout-pink animate-pulse shadow-[0_0_8px_#ec4899]"></span>
+                    Modo: <strong id="modeStatusText" class="text-white uppercase font-bold tracking-wide">SELECCIÓN</strong>
                 </span>
-                <span class="text-slate-600">|</span>
-                <span>Objetos: <strong id="objectCountText" class="text-emerald-400">0</strong></span>
+                <div class="w-1 h-4 rounded-full clay-inset"></div>
+                <span>Objetos: <strong id="objectCountText" class="text-burnout-cyan text-sm">0</strong></span>
+                
+                <!-- Badge Modo Colocación -->
+                <span id="placementHudBadge" class="hidden text-amber-300 font-bold bg-amber-900/40 px-3 py-1 rounded-xl pointer-events-auto cursor-pointer flex items-center gap-2 transition hover:bg-amber-800/50" onclick="cancelPlacement()">
+                    <i class="fa-solid fa-stamp text-xs text-amber-400"></i>
+                    <span id="placementItemNameText">Colocando...</span>
+                    <i class="fa-solid fa-circle-xmark text-sm hover:text-white ml-1"></i>
+                </span>
             </div>
 
-            <!-- Controles flotantes de la Cámara 3D -->
-            <div id="floatingCamControls" class="absolute bottom-4 left-4 flex gap-1.5 z-10">
-                <button onclick="resetCameraView('orbit')" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-arrows-spin text-xs"></i>
-                    <span class="hidden sm:inline">Órbita</span>
+            <!-- Botones Flotantes de Cámara -->
+            <div id="cameraControlsHud" class="absolute bottom-4 left-4 z-10 flex items-center gap-2 clay-panel p-2 rounded-2xl">
+                <button onclick="resetCameraView('orbit')" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-spin text-sm text-burnout-cyan"></i>
+                    <span>Órbita</span>
                 </button>
-                <button onclick="resetCameraView('top')" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-map text-xs"></i>
-                    <span class="hidden sm:inline">Top-Down</span>
+                <button onclick="resetCameraView('top')" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-map text-sm text-burnout-purple"></i>
+                    <span>Top-Down</span>
                 </button>
-                <button onclick="focusSelectedObject()" class="glass-panel px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:border-burnout-pink/50 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-crosshairs text-xs"></i>
-                    <span class="hidden sm:inline">Enfocar</span>
+                <button onclick="focusSelectedObject()" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-crosshairs text-sm text-burnout-pink"></i>
+                    <span>Enfocar</span>
+                </button>
+                <div class="h-6 w-1 rounded-full clay-inset mx-1"></div>
+                <button onclick="changeZoom(-15)" title="Acercar (Zoom In)" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                </button>
+                <button onclick="changeZoom(15)" title="Alejar (Zoom Out)" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
+                    <i class="fa-solid fa-minus text-sm"></i>
                 </button>
             </div>
+        </div>
 
-            <!-- HUD de Prueba de Conducción -->
-            <div id="driveHud" class="hidden absolute inset-0 pointer-events-none p-4 sm:p-6 flex flex-col justify-between z-30">
-                <div class="flex justify-between items-start">
-                    <div class="flex flex-col gap-2">
-                        <div class="glass-panel p-3 sm:p-4 rounded-xl space-y-1 inline-block w-max">
-                            <div class="text-[10px] sm:text-xs text-slate-400 font-mono">VELOCIDAD</div>
-                            <div id="hudSpeed" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">0 <span class="text-xs text-slate-400">MPH</span></div>
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-mono hidden md:block bg-slate-900/60 px-2 py-1 rounded">WASD/Flechas | Espacio: Nitro</div>
-                    </div>
-                    <button onclick="stopTestDrive()" class="pointer-events-auto px-3.5 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Salir</span>
-                    </button>
-                </div>
-
-                <!-- CONTROLES TÁCTILES EN PANTALLA -->
-                <div class="pointer-events-auto flex justify-between items-end w-full max-w-4xl mx-auto pt-2 pb-4 px-4 relative">
-                    <!-- Izquierda: Dirección -->
-                    <div class="flex gap-2 mb-2">
-                        <button id="touchBtnLeft" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-slate-700/80 text-white text-xl flex items-center justify-center shadow-2xl active:bg-burnout-pink/30">
-                            <i class="fa-solid fa-arrow-left"></i>
-                        </button>
-                        <button id="touchBtnRight" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-slate-700/80 text-white text-xl flex items-center justify-center shadow-2xl active:bg-burnout-pink/30">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- Centro: Nitro Boost -->
-                    <div class="absolute left-1/2 -translate-x-1/2 bottom-2 flex flex-col items-center gap-2">
-                        <button id="touchBtnNitro" class="touch-btn w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-burnout-pink border-2 border-white/40 text-white text-xl font-black flex flex-col items-center justify-center shadow-lg shadow-burnout-pink/40 active:scale-95">
-                            <i class="fa-solid fa-bolt text-lg"></i>
-                            <span class="text-[9px] font-mono tracking-tighter">BOOST</span>
-                        </button>
-
-                        <div class="w-32 sm:w-36 glass-panel px-3 py-1.5 rounded-lg space-y-1 shadow-lg">
-                            <div class="flex justify-between text-[9px] sm:text-[10px] font-bold">
-                                <span class="text-burnout-pink">NITRO</span>
-                                <span id="hudNitroText" class="font-mono text-white">100%</span>
-                            </div>
-                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                                <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-burnout-pink w-full transition-all"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Derecha: Pedales -->
-                    <div class="flex gap-2 mb-2">
-                        <button id="touchBtnBrake" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-rose-500/50 text-rose-400 text-xl flex items-center justify-center shadow-2xl">
-                            <i class="fa-solid fa-backward"></i>
-                        </button>
-                        <button id="touchBtnGas" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl glass-panel border border-emerald-500/50 text-emerald-400 text-xl flex items-center justify-center shadow-2xl">
-                            <i class="fa-solid fa-forward"></i>
-                        </button>
+        <!-- INSPECTOR LATERAL DERECHO -->
+        <aside id="rightSidebar" class="sidebar-transition w-80 h-full clay-panel flex flex-col z-20 relative shrink-0 overflow-hidden">
+            <!-- Header Inspector -->
+            <div class="p-4 flex items-center justify-between">
+                <button onclick="toggleRightSidebar()" title="Ocultar Inspector" class="clay-btn w-8 h-8 flex items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+                <div class="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-slate-200">
+                    <span>Inspector</span>
+                    <div class="w-7 h-7 rounded-lg clay-inset flex items-center justify-center">
+                        <i class="fa-solid fa-sliders text-burnout-purple"></i>
                     </div>
                 </div>
             </div>
-        </main>
 
-        <aside id="rightSidebar" class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col z-10 relative shrink-0 transition-all duration-300">
-            <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
-                <button onclick="toggleRightSidebar()" class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 text-xs transition" title="Ocultar inspector">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Inspector</span>
-                    <i class="fa-solid fa-sliders text-burnout-pink text-xs"></i>
-                </div>
-            </div>
-
-            <div id="inspectorContent" class="flex-1 overflow-y-auto p-4 space-y-5">
-                <div id="noSelectionState" class="h-64 flex flex-col items-center justify-center text-center text-slate-500 space-y-2">
-                    <i class="fa-solid fa-mouse-pointer text-3xl opacity-40"></i>
-                    <p class="text-xs font-semibold">Selecciona un objeto en la escena 3D para editar sus propiedades o manipular sus Gizmos de Rotación.</p>
+            <!-- Contenido del Inspector -->
+            <div id="inspectorContent" class="flex-1 overflow-y-auto px-4 py-2 space-y-5 pb-6">
+                
+                <!-- Estado Sin Selección -->
+                <div id="noSelectionState" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
+                    <div class="w-20 h-20 rounded-3xl clay-inset flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-arrow-pointer text-3xl text-slate-600 drop-shadow-md"></i>
+                    </div>
+                    <p class="text-xs font-medium leading-relaxed">Selecciona un objeto en la escena 3D o coloca uno nuevo para modificar sus propiedades.</p>
                 </div>
 
+                <!-- Estado Con Selección -->
                 <div id="activeSelectionState" class="hidden space-y-5">
-                    <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex items-center justify-between">
+                    
+                    <!-- Tarjeta Objeto Seleccionado -->
+                    <div class="p-4 rounded-2xl clay-inset flex items-center justify-between">
                         <div>
-                            <div id="inspItemType" class="text-[10px] font-mono text-burnout-pink uppercase">Carretera</div>
-                            <input id="inspItemName" type="text" onchange="updateSelectedName(this.value)" class="bg-transparent font-bold text-sm text-white focus:outline-none focus:border-b border-burnout-pink w-full">
+                            <span id="inspectorCategoryText" class="text-[10px] font-mono text-burnout-pink font-bold uppercase tracking-wider">ROADS</span>
+                            <h3 id="inspectorObjectNameText" class="text-sm font-bold text-white mt-0.5">Nombre Objeto</h3>
                         </div>
-                        <button onclick="deleteSelectedObject()" class="w-8 h-8 rounded-lg bg-rose-950/40 hover:bg-rose-900 text-rose-400 flex items-center justify-center transition border border-rose-800/40" title="Eliminar objeto">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="duplicateSelectedObject()" title="Duplicar Objeto" class="clay-btn w-9 h-9 flex items-center justify-center text-slate-300">
+                                <i class="fa-solid fa-copy text-sm"></i>
+                            </button>
+                            <button onclick="deleteSelectedObject()" title="Eliminar Objeto" class="clay-btn-rose w-9 h-9 flex items-center justify-center">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- POSICIÓN -->
+                    <!-- Posición (X, Y, Z) -->
                     <div class="space-y-3">
-                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-300 px-1">
                             <span>Posición (Studs)</span>
-                            <span class="text-[10px] font-mono text-slate-500">Vector3</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-md clay-inset text-slate-400">Vector3</span>
                         </div>
 
+                        <!-- X -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-rose-400 font-bold">X</span>
-                                <input type="number" id="numPosX" onchange="onPosInputChange('x', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                                <input type="number" id="numPosX" onchange="updateObjectTransformFromInputs()" class="w-16 clay-input-text text-right text-xs">
                             </div>
-                            <input type="range" id="sliderPosX" min="-300" max="300" step="1" oninput="onPosSliderChange('x', this.value)" class="w-full">
+                            <input type="range" id="slidePosX" min="-250" max="250" step="1" oninput="updateObjectTransformFromSliders()">
                         </div>
 
+                        <!-- Y -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-emerald-400 font-bold">Y (Altura)</span>
-                                <input type="number" id="numPosY" onchange="onPosInputChange('y', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                                <input type="number" id="numPosY" onchange="updateObjectTransformFromInputs()" class="w-16 clay-input-text text-right text-xs">
                             </div>
-                            <input type="range" id="sliderPosY" min="0" max="100" step="0.5" oninput="onPosSliderChange('y', this.value)" class="w-full">
+                            <input type="range" id="slidePosY" min="0" max="150" step="0.5" oninput="updateObjectTransformFromSliders()">
                         </div>
 
+                        <!-- Z -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-sky-400 font-bold">Z</span>
-                                <input type="number" id="numPosZ" onchange="onPosInputChange('z', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                <span class="text-cyan-400 font-bold">Z</span>
+                                <input type="number" id="numPosZ" onchange="updateObjectTransformFromInputs()" class="w-16 clay-input-text text-right text-xs">
                             </div>
-                            <input type="range" id="sliderPosZ" min="-300" max="300" step="1" oninput="onPosSliderChange('z', this.value)" class="w-full">
+                            <input type="range" id="slidePosZ" min="-250" max="250" step="1" oninput="updateObjectTransformFromSliders()">
                         </div>
                     </div>
 
-                    <!-- ROTACIÓN -->
-                    <div class="space-y-3 pt-2 border-t border-slate-800">
-                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                    <!-- Rotación 3D (Gizmo) -->
+                    <div class="space-y-3 pt-2 border-t border-[#1e202e] shadow-[0_-1px_0_rgba(255,255,255,0.05)]">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-300 px-1">
                             <span>Rotación 3D (Grados)</span>
-                            <span class="text-[10px] font-mono text-purple-400">Gizmo Activo</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-md clay-inset text-burnout-purple">Gizmo</span>
                         </div>
 
+                        <!-- Pitch X -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-rose-400 font-bold flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Pitch (X)
-                                </span>
-                                <span id="numRotXVal" class="text-xs text-rose-300">0°</span>
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                <span class="text-rose-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_5px_#fb7185]"></div> Pitch (X)</span>
+                                <span id="txtRotX" class="text-white w-10 text-right clay-input-text inline-block">0°</span>
                             </div>
-                            <input type="range" id="sliderRotX" min="0" max="360" step="15" oninput="onRotSliderAxisChange('x', this.value)" class="w-full">
+                            <input type="range" id="slideRotX" min="0" max="360" step="15" oninput="updateObjectTransformFromSliders()">
                         </div>
 
+                        <!-- Yaw Y -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-emerald-400 font-bold flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Yaw (Y - Giro)
-                                </span>
-                                <span id="numRotYVal" class="text-xs text-emerald-300">0°</span>
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                <span class="text-emerald-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399]"></div> Yaw (Y - Giro)</span>
+                                <span id="txtRotY" class="text-white w-10 text-right clay-input-text inline-block">0°</span>
                             </div>
-                            <input type="range" id="sliderRotY" min="0" max="360" step="15" oninput="onRotSliderAxisChange('y', this.value)" class="w-full">
+                            <input type="range" id="slideRotY" min="0" max="360" step="15" oninput="updateObjectTransformFromSliders()">
                         </div>
 
+                        <!-- Roll Z -->
                         <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-sky-400 font-bold flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-sky-500 inline-block"></span> Roll (Z)
-                                </span>
-                                <span id="numRotZVal" class="text-xs text-sky-300">0°</span>
+                            <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                <span class="text-cyan-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_5px_#22d3ee]"></div> Roll (Z)</span>
+                                <span id="txtRotZ" class="text-white w-10 text-right clay-input-text inline-block">0°</span>
                             </div>
-                            <input type="range" id="sliderRotZ" min="0" max="360" step="15" oninput="onRotSliderAxisChange('z', this.value)" class="w-full">
-                        </div>
-
-                        <div class="grid grid-cols-4 gap-1 pt-1">
-                            <button onclick="rotateSelectedYawBy(0)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">0°</button>
-                            <button onclick="rotateSelectedYawBy(90)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">90°</button>
-                            <button onclick="rotateSelectedYawBy(180)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">180°</button>
-                            <button onclick="rotateSelectedYawBy(270)" class="py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono">270°</button>
+                            <input type="range" id="slideRotZ" min="0" max="360" step="15" oninput="updateObjectTransformFromSliders()">
                         </div>
                     </div>
 
-                    <!-- DIMENSIONES -->
-                    <div class="space-y-3 pt-2 border-t border-slate-800">
-                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">Dimensiones (Ancho / Alto / Largo)</div>
-
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-slate-400">Ancho (X)</span>
-                                <input type="number" id="numScaleX" onchange="onScaleInputChange('x', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
-                            </div>
-                            <input type="range" id="sliderScaleX" min="1" max="200" step="1" oninput="onScaleSliderChange('x', this.value)" class="w-full">
+                    <!-- Perforación de Túneles -->
+                    <div id="buildingHolePanel" class="hidden space-y-3 pt-2 border-t border-[#1e202e] shadow-[0_-1px_0_rgba(255,255,255,0.05)]">
+                        <div class="flex items-center justify-between clay-inset p-3 rounded-xl cursor-pointer" onclick="document.getElementById('chkEnableHole').click()">
+                            <span class="text-xs font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-hammer"></i> Perforar Túnel</span>
+                            <input type="checkbox" id="chkEnableHole" onchange="toggleBuildingHole()" class="w-4 h-4 rounded cursor-pointer pointer-events-none" style="accent-color: #f59e0b;">
                         </div>
 
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-slate-400">Alto (Y)</span>
-                                <input type="number" id="numScaleY" onchange="onScaleInputChange('y', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                        <div id="holeControlsContainer" class="hidden space-y-3 pt-1">
+                            <!-- Ancho -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                    <span class="text-slate-300">Ancho Túnel</span>
+                                    <span id="txtHoleW" class="text-amber-400 font-bold clay-input-text inline-block w-16 text-right">20</span>
+                                </div>
+                                <input type="range" id="slideHoleW" min="10" max="60" step="2" oninput="updateBuildingHoleProps()">
                             </div>
-                            <input type="range" id="sliderScaleY" min="1" max="100" step="1" oninput="onScaleSliderChange('y', this.value)" class="w-full">
-                        </div>
 
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-mono">
-                                <span class="text-slate-400">Largo (Z)</span>
-                                <input type="number" id="numScaleZ" onchange="onScaleInputChange('z', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-right text-xs font-mono text-slate-200">
+                            <!-- Alto -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center text-[11px] font-mono px-1">
+                                    <span class="text-slate-300">Alto Túnel</span>
+                                    <span id="txtHoleH" class="text-amber-400 font-bold clay-input-text inline-block w-16 text-right">14</span>
+                                </div>
+                                <input type="range" id="slideHoleH" min="8" max="40" step="2" oninput="updateBuildingHoleProps()">
                             </div>
-                            <input type="range" id="sliderScaleZ" min="1" max="200" step="1" oninput="onScaleSliderChange('z', this.value)" class="w-full">
                         </div>
                     </div>
-
-                    <!-- COLOR Y DUPLICAR -->
-                    <div class="pt-2 border-t border-slate-800 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-300">Color Primario</span>
-                            <input type="color" id="pickerColor" onchange="onColorChange(this.value)" class="w-8 h-8 rounded bg-transparent cursor-pointer border border-slate-700">
-                        </div>
-
-                        <button onclick="duplicateSelectedObject()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-700">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>Duplicar Elemento</span>
-                        </button>
-                    </div>
-
                 </div>
             </div>
         </aside>
-
-        <!-- Botón flotante para reabrir Sidebar Derecho -->
-        <button id="btnOpenRightSidebar" onclick="toggleRightSidebar()" class="hidden absolute top-3 right-3 z-20 w-9 h-9 glass-panel rounded-lg text-slate-300 hover:text-white hover:border-burnout-pink/50 flex items-center justify-center shadow-lg transition">
-            <i class="fa-solid fa-sliders text-xs"></i>
-        </button>
-
     </div>
 
-    <!-- MODAL DE EXPORTACIÓN LUAU -->
-    <div id="luauModal" class="hidden fixed inset-0 z-50 glass-panel flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-code text-purple-400"></i>
-                    <h3 class="font-bold text-sm text-white">Código Luau para Roblox Studio</h3>
+    <!-- HUD PRUEBA DE CONDUCCIÓN (TEST DRIVE OVERLAY) -->
+    <div id="testDriveHud" class="hidden absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-6">
+        
+        <div class="flex items-start justify-between w-full pointer-events-none">
+            <!-- Velocímetro Flotante -->
+            <div class="clay-panel px-6 py-4 rounded-3xl text-center pointer-events-auto">
+                <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Velocidad</div>
+                <div class="text-4xl font-black font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+                    <span id="speedometerValue">0</span> <span class="text-sm text-slate-400">MPH</span>
                 </div>
-                <button onclick="closeLuauModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="p-4 flex-1 overflow-y-auto">
-                <p class="text-xs text-slate-400 mb-3">
-                    Copia este script e insértalo en la consola de comandos de Roblox Studio o entrégaselo a tu agente para que instale automáticamente el mapa dentro de <code class="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">Workspace.BurnoutDemo.District</code>.
-                </p>
-                <textarea id="luauCodeTextarea" readonly class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-emerald-400 focus:outline-none focus:border-purple-500/50 resize-none"></textarea>
+                <div class="text-[9px] font-mono text-slate-500 mt-2">WASD/Flechas | Espacio: Nitro</div>
             </div>
 
-            <div class="p-4 border-t border-slate-800 bg-slate-950/40 flex justify-end gap-2">
-                <button onclick="closeLuauModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">Cerrar</button>
-                <button onclick="copyLuauCode()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2">
-                    <i class="fa-solid fa-copy"></i>
-                    <span>Copiar Código</span>
+            <!-- Botón Salir -->
+            <button onclick="stopTestDrive()" class="pointer-events-auto clay-btn-rose px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+
+        <!-- Controles Inferiores (Volante, Pedales y Nitro) -->
+        <div class="flex items-end justify-between w-full pointer-events-none relative">
+            
+            <!-- Dirección (Izquierda) -->
+            <div class="pointer-events-auto flex gap-4">
+                <button ontouchstart="touchDriveControls.left = true" ontouchend="touchDriveControls.left = false" onmousedown="touchDriveControls.left = true" onmouseup="touchDriveControls.left = false" onmouseleave="touchDriveControls.left = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-burnout-pink">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button ontouchstart="touchDriveControls.right = true" ontouchend="touchDriveControls.right = false" onmousedown="touchDriveControls.right = true" onmouseup="touchDriveControls.right = false" onmouseleave="touchDriveControls.right = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-burnout-pink">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Botón Nitro Central-Derecha -->
+            <div class="pointer-events-auto absolute bottom-24 right-4 flex flex-col items-center gap-3">
+                <button ontouchstart="touchDriveControls.nitro = true" ontouchend="touchDriveControls.nitro = false" onmousedown="touchDriveControls.nitro = true" onmouseup="touchDriveControls.nitro = false" onmouseleave="touchDriveControls.nitro = false" class="clay-btn-amber w-24 h-24 rounded-full flex flex-col items-center justify-center text-white transition">
+                    <i class="fa-solid fa-bolt text-3xl mb-1"></i>
+                    <span class="text-[10px] font-black tracking-widest">BOOST</span>
+                </button>
+                <!-- Medidor Nitro -->
+                <div class="w-32 h-4 clay-inset rounded-full overflow-hidden p-0.5">
+                    <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full w-full transition-all duration-75 shadow-[0_0_10px_#f59e0b]"></div>
+                </div>
+            </div>
+
+            <!-- Pedales Aceleración / Freno (Derecha) -->
+            <div class="pointer-events-auto flex gap-4">
+                <button ontouchstart="touchDriveControls.backward = true" ontouchend="touchDriveControls.backward = false" onmousedown="touchDriveControls.backward = true" onmouseup="touchDriveControls.backward = false" onmouseleave="touchDriveControls.backward = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-rose-500">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                <button ontouchstart="touchDriveControls.forward = true" ontouchend="touchDriveControls.forward = false" onmousedown="touchDriveControls.forward = true" onmouseup="touchDriveControls.forward = false" onmouseleave="touchDriveControls.forward = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-emerald-500">
+                    <i class="fa-solid fa-forward-step"></i>
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- SCRIPT PRINCIPAL DE LA APLICACIÓN -->
     <script>
-        // CATÁLOGO DE ELEMENTOS DISPONIBLES
-        const ITEM_DEFINITIONS = [
-            { id: 'road_straight', name: 'Recta Ancha (4 Carriles)', category: 'roads', icon: 'fa-vector-square', size: [40, 1, 60], color: 0x1e293b },
-            { id: 'road_curve', name: 'Curva de Derrape 90° Real', category: 'roads', icon: 'fa-turn-up', size: [60, 1, 60], color: 0x1e293b },
-            { id: 'road_intersection', name: 'Cruce 4 Vías', category: 'roads', icon: 'fa-table-cells-large', size: [60, 1, 60], color: 0x1e293b },
-            { id: 'road_viaduct_ramp', name: 'Rampa Subida a Viaducto', category: 'roads', icon: 'fa-arrow-trend-up', size: [40, 25, 80], color: 0x334155 },
-            { id: 'road_ramp', name: 'Rampa de Salto / Acrobacia', category: 'roads', icon: 'fa-chart-line', size: [30, 15, 60], color: 0x334155 },
-            { id: 'road_viaduct', name: 'Viaducto Elevado (con Columnas)', category: 'roads', icon: 'fa-bridge', size: [40, 25, 80], color: 0x475569 },
-
-            { id: 'bld_skyscraper', name: 'Rascacielos Vidriado', category: 'buildings', icon: 'fa-building', size: [50, 120, 50], color: 0x0f172a },
-            { id: 'bld_tunnel', name: 'Edificio con Túnel Atravesable', category: 'buildings', icon: 'fa-archway', size: [60, 50, 40], color: 0x1e1b4b },
-            { id: 'bld_mall', name: 'Centro Comercial (Mall)', category: 'buildings', icon: 'fa-store', size: [100, 30, 120], color: 0x311b92 },
-            { id: 'bld_gas_station', name: 'Estación de Gasolina / Pits', category: 'buildings', icon: 'fa-gas-pump', size: [45, 14, 35], color: 0x0284c7 },
-            { id: 'bld_block', name: 'Manzana Urbana', category: 'buildings', icon: 'fa-city', size: [80, 45, 80], color: 0x1e293b },
-
-            { id: 'prop_tree_oak', name: 'Árbol Roble Low-Poly', category: 'props', icon: 'fa-tree', size: [12, 18, 12], color: 0x15803d },
-            { id: 'prop_tree_pine', name: 'Árbol Pino Low-Poly', category: 'props', icon: 'fa-tree', size: [10, 22, 10], color: 0x064e3b },
-            { id: 'prop_traffic_light', name: 'Semáforo Urbano', category: 'props', icon: 'fa-traffic-light', size: [4, 18, 6], color: 0x334155 },
-            { id: 'prop_trash_can', name: 'Tacho de Basura Low-Poly', category: 'props', icon: 'fa-trash-can', size: [3, 4, 3], color: 0x475569 },
-            { id: 'prop_light', name: 'Poste Neón de Luz', category: 'props', icon: 'fa-lightbulb', size: [2, 20, 2], color: 0x06b6d4 },
-            { id: 'prop_finish_arch', name: 'Arco de Meta Holográfico', category: 'props', icon: 'fa-flag-checkered', size: [45, 20, 6], color: 0xe02484 },
-            { id: 'prop_nitro', name: 'Cápsula Nitro (+30% Boost)', category: 'props', icon: 'fa-bolt', size: [6, 6, 6], color: 0xf59e0b },
-            { id: 'prop_barrier', name: 'Barrera de Impacto', category: 'props', icon: 'fa-shield-halved', size: [15, 6, 4], color: 0xef4444 }
-        ];
-
-        // VARIABLES GLOBALES
+        // ==========================================
+        // VARIABLES GLOBALES Y ESTADO
+        // ==========================================
         let scene, camera, renderer, raycaster, mouse;
         let groundGrid, groundPlane;
         let sceneObjects = [];
         let selectedObject = null;
-        let currentMode = 'select'; // 'select', 'move', 'rotate'
+        let currentMode = 'select';
         let currentCategory = 'roads';
 
-        // GIZMO DE ROTACIÓN 3D
+        // Stamp / Placement Mode
+        let activePlacementItem = null;
+        let placementGhostGroup = null;
+
+        // Rotation Gizmo
         let rotationGizmoGroup = null;
-        let ringMeshX, ringMeshY, ringMeshZ;
         let activeGizmoAxis = null;
         let gizmoStartMouse = { x: 0, y: 0 };
         let gizmoStartRotation = { x: 0, y: 0, z: 0 };
 
-        // Variables de Arrastre 3D
+        // 3D Mouse Dragging
         let isDragging3D = false;
         let dragPlane = new THREE.Plane();
         let dragOffset = new THREE.Vector3();
         let planeIntersection = new THREE.Vector3();
 
-        // Variables de Cámara y Órbita
+        // Camera Orbit
         let isOrbiting = false;
         let previousMousePosition = { x: 0, y: 0 };
+        let cameraRadius = 120, cameraTheta = Math.PI / 4, cameraPhi = Math.PI / 3;
         let cameraTarget = new THREE.Vector3(0, 0, 0);
-        let cameraRadius = 150;
-        let cameraTheta = Math.PI / 4;
-        let cameraPhi = Math.PI / 4;
+        let initialPinchDistance = null;
 
-        // Gestos Táctiles
-        let initialTouchDistance = 0;
-        let isTouchPinching = false;
-
-        // Modo Prueba de Conducción
+        // Test Drive State
         let isTestingDrive = false;
-        let carMesh = null;
-        let carSpeed = 0;
-        let nitroCharge = 100;
+        let testCarGroup = null;
+        let chaseCameraOffset = 0; 
+        let carPhysics = { pos: new THREE.Vector3(), speed: 0, angle: 0, maxSpeed: 110, nitro: 100, isBoosting: false };
         let keysPressed = {};
-        let chaseCameraOffset = 0; // Offset para la cámara libre trasera
+        let touchDriveControls = { forward: false, backward: false, left: false, right: false, nitro: false };
+        let clock = new THREE.Clock();
 
+        // ==========================================
+        // CATÁLOGO COMPLETO DE OBJETOS
+        // ==========================================
+        const ITEM_DEFINITIONS = [
+            // VÍAS (ROADS)
+            { id: 'road_straight', name: 'Recta Ancha (4 Carriles)', category: 'roads', size: [40, 1, 60], color: 0x3f4559 },
+            { id: 'road_avenue', name: 'Avenida Principal', category: 'roads', size: [28, 1, 78], color: 0x3f4559 },
+            { id: 'road_local', name: 'Calle Local / Acceso', category: 'roads', size: [18, 1, 58], color: 0x485166 },
+            { id: 'road_curve', name: 'Curva de Derrape 90°', category: 'roads', size: [60, 1, 60], color: 0x3f4559 },
+            { id: 'road_cross', name: 'Cruce de 4 Vías', category: 'roads', size: [60, 1, 60], color: 0x3f4559 },
+            { id: 'road_ramp', name: 'Rampa de Salto / Acrobacia', category: 'roads', size: [30, 15, 60], color: 0x4d5570 },
+            { id: 'road_ramp_viaduct', name: 'Rampa Subida a Viaducto', category: 'roads', size: [40, 20, 80], color: 0x4d5570 },
+            { id: 'road_viaduct', name: 'Viaducto Elevado', category: 'roads', size: [40, 20, 80], color: 0x3f4559 },
+            { id: 'road_roundabout', name: 'Rotonda / Distribuidor', category: 'roads', size: [76, 1, 76], color: 0x3f4559 },
+
+            // CIUDAD (BUILDINGS)
+            { id: 'bld_skyscraper', name: 'Rascacielos Vidriado', category: 'buildings', size: [50, 120, 50], color: 0x222436 },
+            { id: 'bld_glass_office', name: 'Edificio Vidriado Bajo', category: 'buildings', size: [52, 28, 36], color: 0x718096 },
+            { id: 'bld_cyan_block', name: 'Bloque Celeste', category: 'buildings', size: [48, 16, 36], color: 0x06b6d4 },
+            { id: 'bld_tunnel', name: 'Edificio con Túnel', category: 'buildings', size: [60, 70, 40], color: 0x1a1c29 },
+            { id: 'bld_mall', name: 'Centro Comercial (Mall)', category: 'buildings', size: [100, 40, 120], color: 0x1e1c3a },
+            { id: 'bld_block', name: 'Manzana de Cuadra Urbana', category: 'buildings', size: [80, 50, 80], color: 0x191a26 },
+            { id: 'bld_pavilion_long', name: 'Pabellón Largo', category: 'buildings', size: [42, 13, 13], color: 0x8794a3 },
+            { id: 'bld_pavilion_wing', name: 'Ala de Pabellón', category: 'buildings', size: [29, 13, 14], color: 0x8794a3 },
+            { id: 'bld_pavilion_tall', name: 'Pabellón Vertical', category: 'buildings', size: [14, 14, 38], color: 0x8794a3 },
+            { id: 'bld_classroom', name: 'Aula / Anexo', category: 'buildings', size: [28, 10, 15], color: 0x9aa7b5 },
+            { id: 'bld_service', name: 'Pabellón Auxiliar', category: 'buildings', size: [34, 13, 25], color: 0x5b677a },
+            { id: 'bld_campus', name: 'Edificio Académico Articulado', category: 'buildings', size: [120, 32, 96], color: 0x8794a3 },
+            { id: 'bld_red_roof', name: 'Edificio Techo Rojo', category: 'buildings', size: [20, 12, 35], color: 0x993333 },
+
+            // PROPS LOW-POLY
+            { id: 'prop_tree_oak', name: 'Árbol Roble Low-Poly', category: 'props', size: [10, 18, 10], color: 0x10b981 },
+            { id: 'prop_tree_pine', name: 'Árbol Pino Low-Poly', category: 'props', size: [10, 22, 10], color: 0x059669 },
+            { id: 'prop_traffic_light', name: 'Semáforo Urbano', category: 'props', size: [4, 14, 4], color: 0xf59e0b },
+            { id: 'prop_trash_can', name: 'Tacho de Basura Low-Poly', category: 'props', size: [4, 5, 4], color: 0x64748b },
+            { id: 'prop_neon_pole', name: 'Poste Neón de Luz', category: 'props', size: [3, 16, 3], color: 0xec4899 },
+            { id: 'prop_gas_station', name: 'Estación de Gasolina / Pits', category: 'props', size: [50, 16, 40], color: 0x06b6d4 },
+            { id: 'prop_green_space', name: 'Parque / Campo de Campus', category: 'props', size: [176, 1, 142], color: 0x3f7d52 },
+            { id: 'prop_parking', name: 'Estacionamiento Urbano', category: 'props', size: [72, 1, 48], color: 0x303646 },
+            { id: 'prop_walkway', name: 'Pasarela de Campus', category: 'props', size: [60, 12, 8], color: 0x64748b },
+            { id: 'prop_nitro', name: 'Nitro Pickup (Recarga)', category: 'props', size: [6, 6, 6], color: 0xf59e0b }
+        ];
+
+        // ==========================================
+        // INICIALIZACIÓN DE THREE.JS Y UI
+        // ==========================================
         window.onload = function() {
-            init3DEngine();
-            initRotationGizmo();
+            initThreeScene();
             setupEventListeners();
-            renderCatalogItems();
             updateUIState();
-            
             animate();
         };
 
-        function showToast(message, type = 'info') {
-            let container = document.getElementById('toastContainer');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toastContainer';
-                container.className = 'fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none';
-                document.body.appendChild(container);
-            }
-            const toast = document.createElement('div');
-            toast.className = `glass-panel px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-xl border pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ${
-                type === 'error' ? 'border-rose-500/50 text-rose-300 bg-rose-950/90' :
-                type === 'success' ? 'border-emerald-500/50 text-emerald-300 bg-emerald-950/90' :
-                'border-burnout-pink/50 text-slate-200 bg-slate-900/90'
-            }`;
-            const icon = type === 'error' ? 'fa-triangle-exclamation text-rose-400' :
-                         type === 'success' ? 'fa-circle-check text-emerald-400' :
-                         'fa-circle-info text-burnout-pink';
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
-            container.appendChild(toast);
-            
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
-            
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        function updateUIState() {
+            setEditorMode('select');
+            updateObjectCountUI();
+            renderCatalogItems();
+        }
+
+        function updateObjectCountUI() {
+            const el = document.getElementById('objectCountText');
+            if (el) el.innerText = sceneObjects.length;
         }
 
         function setEditorMode(mode) {
             currentMode = mode;
-            
-            document.getElementById('btnModeSelect').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'select' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
-            document.getElementById('btnModeMove').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'move' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
-            document.getElementById('btnModeRotate').className = `px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${mode === 'rotate' ? 'bg-burnout-pink text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`;
-
-            const modeNames = { 'select': 'Selección', 'move': 'Mover 3D', 'rotate': 'Rotación (Gizmo)' };
-            document.getElementById('modeStatusText').innerText = modeNames[mode] || 'Selección';
-
+            if (mode !== 'select') {
+                cancelPlacement();
+            }
+            const baseClass = 'px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0';
+            document.getElementById('btnModeSelect').className = `${baseClass} ${mode === 'select' ? 'clay-btn-pink' : 'clay-btn'}`;
+            document.getElementById('btnModeMove').className = `${baseClass} ${mode === 'move' ? 'clay-btn-cyan' : 'clay-btn'}`;
+            document.getElementById('btnModeRotate').className = `${baseClass} ${mode === 'rotate' ? 'clay-btn-purple' : 'clay-btn'}`;
+            const modeNames = { 'select': 'SELECCIÓN', 'move': 'MOVER', 'rotate': 'ROTACIÓN' };
+            document.getElementById('modeStatusText').innerText = modeNames[mode] || 'SELECCIÓN';
             updateGizmoPositionAndScale();
         }
 
-        function updateUIState() {
-            setEditorMode(currentMode);
-            updateObjectCountUI();
-            if (selectedObject) {
-                updateInspectorValues();
-            } else {
-                deselectObject();
-            }
+        function updateCameraPosition() {
+            if (!camera) return;
+            camera.position.x = cameraTarget.x + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            camera.position.y = cameraTarget.y + cameraRadius * Math.cos(cameraPhi);
+            camera.position.z = cameraTarget.z + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            camera.lookAt(cameraTarget);
         }
 
-        function updateObjectCountUI() {
-            document.getElementById('objectCountText').innerText = sceneObjects.length;
+        function forceResizeCanvas() {
+            const viewport = document.getElementById('canvasViewport');
+            if (!viewport || !renderer || !camera) return;
+            const width = viewport.clientWidth;
+            const height = viewport.clientHeight;
+            if (width === 0 || height === 0) return;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
         }
 
-        function init3DEngine() {
-            const container = document.getElementById('canvas3DContainer');
+        function initThreeScene() {
+            const viewport = document.getElementById('canvasViewport');
+            const canvas = document.getElementById('threeCanvas');
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x090d16);
-            scene.fog = new THREE.FogExp2(0x090d16, 0.002);
+            scene.background = new THREE.Color(0x262938);
+            scene.fog = new THREE.FogExp2(0x262938, 0.0015);
+
+            camera = new THREE.PerspectiveCamera(55, viewport.clientWidth / viewport.clientHeight, 0.5, 1500);
+            updateCameraPosition();
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
-            updateCameraPosition();
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            container.appendChild(renderer.domElement);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(150, 250, 100);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
-            scene.add(dirLight);
+            const sunLight = new THREE.DirectionalLight(0xfff0dd, 0.8);
+            sunLight.position.set(150, 250, 100);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 600;
+            const d = 200;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.bias = -0.0005;
+            scene.add(sunLight);
+            
+            const fillLight = new THREE.DirectionalLight(0xabcdef, 0.4);
+            fillLight.position.set(-100, 100, -100);
+            scene.add(fillLight);
 
-            const hemiLight = new THREE.HemisphereLight(0x06b6d4, 0x090d16, 0.4);
-            scene.add(hemiLight);
-
-            groundGrid = new THREE.GridHelper(600, 120, 0xe02484, 0x1f2937);
+            groundGrid = new THREE.GridHelper(600, 120, 0xec4899, 0x3b4054);
+            groundGrid.position.y = 0;
             scene.add(groundGrid);
 
-            const groundGeo = new THREE.PlaneGeometry(600, 600);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9, metalness: 0.1 });
-            groundPlane = new THREE.Mesh(groundGeo, groundMat);
-            groundPlane.rotation.x = -Math.PI / 2;
-            groundPlane.receiveShadow = true;
+            const planeGeo = new THREE.PlaneGeometry(2000, 2000);
+            planeGeo.rotateX(-Math.PI / 2);
+            groundPlane = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ visible: false }));
             scene.add(groundPlane);
 
-            createTestCarMesh();
+            createRotationGizmoGroup();
 
-            if (window.ResizeObserver) {
-                const resizeObserver = new ResizeObserver(() => onWindowResize());
-                resizeObserver.observe(container);
-            }
+            const resizeObserver = new ResizeObserver(() => {
+                if (!renderer || isTestingDrive) return;
+                forceResizeCanvas();
+            });
+            resizeObserver.observe(viewport);
         }
 
-        function initRotationGizmo() {
-            rotationGizmoGroup = new THREE.Group();
-            rotationGizmoGroup.name = "rotationGizmo";
-
-            const createRing = (colorHex, axisName, rotX, rotY, rotZ) => {
-                const geometry = new THREE.TorusGeometry(15, 0.6, 16, 64);
-                const material = new THREE.MeshBasicMaterial({ 
-                    color: colorHex, 
-                    depthTest: false, 
-                    transparent: true, 
-                    opacity: 0.95 
-                });
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.rotation.set(rotX, rotY, rotZ);
-                mesh.userData = { isGizmoRing: true, axis: axisName, defaultColor: colorHex };
-                mesh.renderOrder = 999;
-                return mesh;
+        // ==========================================
+        // CREADOR DE MESHES 3D PROCEDURALES
+        // ==========================================
+        function createSceneObject(itemDef, initialPos, extraProps = {}) {
+            const group = new THREE.Group();
+            group.userData = { 
+                id: itemDef.id, 
+                name: itemDef.name, 
+                category: itemDef.category,
+                size: [...itemDef.size],
+                holeEnabled: extraProps.holeEnabled || false,
+                holeWidth: extraProps.holeWidth || 20,
+                holeHeight: extraProps.holeHeight || 14
             };
 
-            ringMeshX = createRing(0xef4444, 'x', 0, Math.PI / 2, 0);
-            ringMeshY = createRing(0x10b981, 'y', Math.PI / 2, 0, 0);
-            ringMeshZ = createRing(0x3b82f6, 'z', 0, 0, 0);
+            const [w, h, l] = itemDef.size;
+            const material = new THREE.MeshStandardMaterial({ 
+                color: itemDef.color || 0x3b82f6,
+                roughness: 0.8,
+                metalness: 0.1
+            });
 
-            rotationGizmoGroup.add(ringMeshX);
-            rotationGizmoGroup.add(ringMeshY);
-            rotationGizmoGroup.add(ringMeshZ);
+            if (itemDef.id === 'road_straight' || itemDef.id === 'road_avenue' || itemDef.id === 'road_local' || itemDef.id === 'road_cross') {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.receiveShadow = true;
+                group.add(mesh);
 
-            rotationGizmoGroup.visible = false;
-            scene.add(rotationGizmoGroup);
-        }
+                const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.9);
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.position.y = h / 2 + 0.05;
+                group.add(stripe);
 
-        function updateCameraPosition() {
-            cameraPhi = Math.max(0.05, Math.min(Math.PI / 2 - 0.01, cameraPhi));
-            
-            camera.position.x = cameraTarget.x + cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-            camera.position.y = cameraTarget.y + cameraRadius * Math.cos(cameraPhi);
-            camera.position.z = cameraTarget.z + cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
-            
-            camera.lookAt(cameraTarget);
-        }
-
-        function updateGizmoPositionAndScale() {
-            if (!selectedObject || !rotationGizmoGroup) {
-                if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
-                return;
-            }
-
-            if (currentMode === 'rotate') {
-                rotationGizmoGroup.visible = true;
-                rotationGizmoGroup.position.copy(selectedObject.position);
-
-                const bbox = new THREE.Box3().setFromObject(selectedObject);
-                const size = new THREE.Vector3();
-                bbox.getSize(size);
-                const maxDim = Math.max(size.x, size.y, size.z, 10);
-                
-                const distance = camera.position.distanceTo(selectedObject.position);
-                const scale = Math.max(0.6, Math.min(3.5, (maxDim * 0.7 + distance * 0.08) / 20));
-
-                rotationGizmoGroup.scale.set(scale, scale, scale);
-                rotationGizmoGroup.rotation.copy(selectedObject.rotation);
-            } else {
-                rotationGizmoGroup.visible = false;
-            }
-        }
-
-        function createSceneObject(itemDef, overrideProps = {}) {
-            const group = new THREE.Group();
-            
-            const [w, h, l] = overrideProps.dimensions || itemDef.size;
-            const color = overrideProps.color !== undefined ? overrideProps.color : itemDef.color;
-
-            const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5, metalness: 0.2, flatShading: true });
-
-            // CONSTRUCCIÓN PROCEDURAL DETALLADA DE MESHES
-            if (itemDef.id === 'road_curve') {
-                const outerR = Math.max(w, l);
-                const roadWidth = 35;
-                const innerR = Math.max(10, outerR - roadWidth);
-                const midR = (innerR + outerR) / 2;
-                
+            } else if (itemDef.id === 'road_curve') {
                 const shape = new THREE.Shape();
-                shape.absarc(0, 0, outerR, 0, Math.PI / 2, false);
-                shape.absarc(0, 0, innerR, Math.PI / 2, 0, true);
-                
-                const extrudeSettings = { depth: 1, bevelEnabled: false };
+                const radius = w;
+                shape.absarc(0, 0, radius, 0, Math.PI / 2, false);
+                shape.lineTo(radius - 12, 0);
+                shape.absarc(0, 0, radius - 12, Math.PI / 2, 0, true);
+                shape.closePath();
+
+                const extrudeSettings = { depth: h, bevelEnabled: false, curveSegments: 24 };
                 const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                geo.rotateX(-Math.PI / 2);
-                
-                // Centrado unificado del centroide de la bounding box
-                geo.computeBoundingBox();
-                const bbox = geo.boundingBox;
-                const centerX = (bbox.max.x + bbox.min.x) / 2;
-                const centerZ = (bbox.max.z + bbox.min.z) / 2;
-                geo.translate(-centerX, 0, -centerZ);
+                geo.rotateX(Math.PI / 2);
+                geo.center();
 
                 const curveMesh = new THREE.Mesh(geo, material);
                 curveMesh.receiveShadow = true;
-                curveMesh.castShadow = true;
                 group.add(curveMesh);
+                
+                const arcShape = new THREE.Shape();
+                arcShape.absarc(0, 0, radius - 6, 0.05, Math.PI / 2 - 0.05, false);
+                const arcGeo = new THREE.ShapeGeometry(arcShape, 12);
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
+                const arcMesh = new THREE.Mesh(arcGeo, stripeMat);
+                arcMesh.rotation.x = Math.PI / 2;
+                arcMesh.position.set(-w/2, h/2 + 0.05, -l/2);
+                group.add(arcMesh);
 
-                // Línea de carril neón central perfeccionada y alineada exacto con la calzada
-                const arcLineGeo = new THREE.RingGeometry(midR - 0.6, midR + 0.6, 32, 1, 0, Math.PI / 2);
-                arcLineGeo.rotateX(-Math.PI / 2);
-                arcLineGeo.translate(-centerX, 0.6, -centerZ);
-
-                const arcLineMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
-                const arcLine = new THREE.Mesh(arcLineGeo, arcLineMat);
-                group.add(arcLine);
-
-                // Línea de borde blanco exterior
-                const outerLineGeo = new THREE.RingGeometry(outerR - 1, outerR - 0.2, 32, 1, 0, Math.PI / 2);
-                outerLineGeo.rotateX(-Math.PI / 2);
-                outerLineGeo.translate(-centerX, 0.61, -centerZ);
-                const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-                const outerLine = new THREE.Mesh(outerLineGeo, whiteMat);
-                group.add(outerLine);
-
-            } else if (itemDef.id === 'road_viaduct_ramp') {
+            } else if (itemDef.id === 'road_ramp' || itemDef.id === 'road_ramp_viaduct') {
                 const shape = new THREE.Shape();
                 shape.moveTo(-l / 2, -h / 2);
-                shape.lineTo(l / 2, h / 2);
                 shape.lineTo(l / 2, -h / 2);
+                shape.lineTo(l / 2, h / 2);
                 shape.closePath();
 
                 const extrudeSettings = { depth: w, bevelEnabled: false };
                 const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                geo.rotateY(Math.PI / 2);
+                
+                if (itemDef.id === 'road_ramp_viaduct') {
+                    geo.rotateY(Math.PI / 2); 
+                } else {
+                    geo.rotateY(-Math.PI / 2);
+                }
                 geo.center();
 
                 const rampMesh = new THREE.Mesh(geo, material);
@@ -767,181 +844,303 @@
                 rampMesh.receiveShadow = true;
                 group.add(rampMesh);
 
-                // Demarcación de carril en la pendiente de la rampa
-                const stripeGeo = new THREE.BoxGeometry(1, 0.2, l * 0.95);
+                const rampSlopeAngle = Math.atan2(h, l);
+                const diagLen = Math.hypot(l, h);
+                const stripeGeo = new THREE.BoxGeometry(1, 0.1, diagLen * 0.95);
                 const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
                 const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                stripe.rotation.x = -Math.atan2(h, l);
-                stripe.position.y = 0.6;
+                
+                if (itemDef.id === 'road_ramp_viaduct') {
+                    stripe.rotation.x = rampSlopeAngle;
+                } else {
+                    stripe.rotation.x = -rampSlopeAngle;
+                }
+                stripe.position.set(0, 0.1, 0);
                 group.add(stripe);
 
-                // Columnas de soporte progresivas en la subida
-                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-                const numPillars = 3;
-                for (let i = 1; i <= numPillars; i++) {
-                    const frac = i / (numPillars + 1);
-                    const pZ = -l / 2 + frac * l;
-                    const currentH = frac * h;
-                    if (currentH > 2) {
-                        const pillarGeo = new THREE.CylinderGeometry(1.5, 2, currentH, 8);
+            } else if (itemDef.id === 'road_viaduct') {
+                const roadGeo = new THREE.BoxGeometry(w, 2, l);
+                const roadMesh = new THREE.Mesh(roadGeo, material);
+                roadMesh.position.y = h / 2 - 1;
+                roadMesh.castShadow = true;
+                roadMesh.receiveShadow = true;
+                group.add(roadMesh);
+
+                const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.9);
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.position.y = h / 2 + 0.05;
+                group.add(stripe);
+
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+                const pillarGeo = new THREE.CylinderGeometry(1.8, 1.8, h - 2, 12);
+                
+                [-w / 3, w / 3].forEach(px => {
+                    [-l / 3, l / 3].forEach(pz => {
                         const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-                        pillar.position.set(0, currentH / 2 - h / 2, pZ);
+                        pillar.position.set(px, (h - 2) / 2 - h / 2, pz);
                         pillar.castShadow = true;
                         group.add(pillar);
-                    }
+                    });
+                });
+
+            } else if (itemDef.id === 'road_roundabout') {
+                const outerRadius = Math.min(w, l) / 2;
+                const innerRadius = outerRadius * 0.58;
+                const ringGeo = new THREE.RingGeometry(innerRadius, outerRadius, 48);
+                const roadRing = new THREE.Mesh(ringGeo, material);
+                roadRing.rotation.x = -Math.PI / 2;
+                roadRing.position.y = h / 2 + 0.02;
+                roadRing.receiveShadow = true;
+                group.add(roadRing);
+
+                const islandMat = new THREE.MeshStandardMaterial({ color: 0x355c3d, roughness: 0.95 });
+                const island = new THREE.Mesh(new THREE.CylinderGeometry(innerRadius - 2, innerRadius - 2, 1.2, 48), islandMat);
+                island.position.y = h / 2 + 0.55;
+                island.receiveShadow = true;
+                group.add(island);
+
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+                for (let index = 0; index < 18; index++) {
+                    const angle = (index / 18) * Math.PI * 2;
+                    const dash = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 6), stripeMat);
+                    const radius = (innerRadius + outerRadius) / 2;
+                    dash.position.set(Math.cos(angle) * radius, h / 2 + 0.08, Math.sin(angle) * radius);
+                    dash.rotation.y = -angle;
+                    group.add(dash);
                 }
 
-            } else if (itemDef.id === 'road_ramp') {
-                const rightTower = new THREE.Mesh(rightTowerGeo, material);
-                rightTower.position.x = w / 2 - towerWidth / 2;
-                rightTower.castShadow = true;
+            } else if (itemDef.id === 'bld_glass_office') {
+                const bodyMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.82 });
+                const glassMat = new THREE.MeshStandardMaterial({ color: 0x155e75, roughness: 0.25, metalness: 0.25, emissive: 0x083344, emissiveIntensity: 0.22 });
+                const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), bodyMat);
+                body.castShadow = true;
+                body.receiveShadow = true;
+                group.add(body);
+                const glass = new THREE.Mesh(new THREE.BoxGeometry(w * 0.74, h * 0.46, 0.65), glassMat);
+                glass.position.set(0, 0, l / 2 + 0.36);
+                group.add(glass);
 
-                const topBridge = new THREE.Mesh(topBridgeGeo, material);
-                topBridge.position.y = tunnelHeight / 2;
-                topBridge.castShadow = true;
+            } else if (itemDef.id === 'bld_campus') {
+                const concrete = new THREE.MeshStandardMaterial({ color: 0x8794a3, roughness: 0.88 });
+                const facade = new THREE.MeshStandardMaterial({ color: 0x5e89a0, roughness: 0.42, metalness: 0.08 });
+                const roof = new THREE.MeshStandardMaterial({ color: 0xc6d0d5, roughness: 0.92 });
+                const addBox = (width, height, length, x, y, z, mat, rotY = 0) => {
+                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, length), mat);
+                    mesh.position.set(x, y, z);
+                    mesh.rotation.y = rotY;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    group.add(mesh);
+                };
 
-                group.add(leftTower);
-                group.add(rightTower);
-                group.add(topBridge);
+                addBox(w * 0.26, h * 0.38, l * 0.15, -w * 0.27, -h * 0.31, -l * 0.33, concrete, 0.10);
+                addBox(w * 0.29, h * 0.38, l * 0.15, 0, -h * 0.31, -l * 0.27, concrete, 0.02);
+                addBox(w * 0.20, h * 0.38, l * 0.15, w * 0.28, -h * 0.31, -l * 0.19, concrete, -0.42);
+                addBox(w * 0.15, h * 0.42, l * 0.43, w * 0.33, -h * 0.29, l * 0.12, concrete, -0.18);
+                addBox(w * 0.18, h * 0.36, l * 0.18, w * 0.21, -h * 0.32, l * 0.36, concrete, 0.52);
+                addBox(w * 0.31, h * 0.30, l * 0.13, -w * 0.08, -h * 0.35, l * 0.06, facade, 0);
+                addBox(w * 0.19, h * 0.26, l * 0.16, -w * 0.24, -h * 0.37, l * 0.31, roof, -0.08);
 
-                // Luz neón de túnel
-                const light = new THREE.PointLight(0x06b6d4, 3, 30);
-                light.position.set(0, -h / 2 + tunnelHeight / 2, 0);
-                group.add(light);
+            } else if (itemDef.category === 'buildings') {
+                buildBuildingGeometry(group, itemDef, extraProps);
 
             } else if (itemDef.id === 'prop_tree_oak') {
-                // ÁRBOL ROBLE LOW-POLY
-                const trunkGeo = new THREE.CylinderGeometry(0.8, 1.2, h * 0.4, 6);
-                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9, flatShading: true });
+                const trunkGeo = new THREE.CylinderGeometry(0.8, 1.2, 6, 5);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, flatShading: true });
                 const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-                trunk.position.y = -h / 2 + (h * 0.4) / 2;
+                trunk.position.y = -h / 2 + 3;
                 trunk.castShadow = true;
-
-                const foliageGeo = new THREE.IcosahedronGeometry(w / 2, 1);
-                const foliageMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7, flatShading: true });
-                const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-                foliage.position.y = trunk.position.y + (h * 0.4);
-                foliage.castShadow = true;
-
                 group.add(trunk);
-                group.add(foliage);
+
+                const leavesGeo = new THREE.DodecahedronGeometry(5, 0);
+                const leavesMat = new THREE.MeshStandardMaterial({ color: itemDef.color, flatShading: true });
+                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                leaves.position.y = h / 2 - 3;
+                leaves.castShadow = true;
+                group.add(leaves);
 
             } else if (itemDef.id === 'prop_tree_pine') {
-                // ÁRBOL PINO LOW-POLY
-                const trunkGeo = new THREE.CylinderGeometry(0.6, 0.9, h * 0.3, 6);
-                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9, flatShading: true });
+                const trunkGeo = new THREE.CylinderGeometry(0.6, 1, 5, 5);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, flatShading: true });
                 const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-                trunk.position.y = -h / 2 + (h * 0.3) / 2;
+                trunk.position.y = -h / 2 + 2.5;
+                trunk.castShadow = true;
+                group.add(trunk);
 
-                const foliageMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.6, flatShading: true });
-                
-                [0.8, 0.6, 0.4].forEach((scale, idx) => {
-                    const coneGeo = new THREE.ConeGeometry(w / 2 * scale, h * 0.3, 6);
-                    const cone = new THREE.Mesh(coneGeo, foliageMat);
-                    cone.position.y = trunk.position.y + 3 + (idx * 4);
+                [8, 6, 4].forEach((coneRadius, idx) => {
+                    const coneGeo = new THREE.ConeGeometry(coneRadius, 7, 5);
+                    const coneMat = new THREE.MeshStandardMaterial({ color: itemDef.color, flatShading: true });
+                    const cone = new THREE.Mesh(coneGeo, coneMat);
+                    cone.position.y = -h / 2 + 6 + (idx * 4.5);
                     cone.castShadow = true;
                     group.add(cone);
                 });
 
-                group.add(trunk);
+            } else if (itemDef.id === 'prop_nitro') {
+                const nitroGeo = new THREE.OctahedronGeometry(2.5, 0);
+                const nitroMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xf59e0b, emissiveIntensity: 0.8, flatShading: true });
+                const nitroMesh = new THREE.Mesh(nitroGeo, nitroMat);
+                group.add(nitroMesh);
 
-            } else if (itemDef.id === 'prop_traffic_light') {
-                // SEMÁFORO URBANO LOW-POLY
-                const poleGeo = new THREE.CylinderGeometry(0.3, 0.4, h, 8);
-                const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 });
-                const pole = new THREE.Mesh(poleGeo, poleMat);
+                const ringGeo = new THREE.TorusGeometry(3.5, 0.2, 4, 16);
+                const ringMat = new THREE.MeshBasicMaterial({color: 0xf59e0b});
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.x = Math.PI/2;
+                group.add(ringMesh);
 
-                const boxGeo = new THREE.BoxGeometry(2, 5, 1.5);
-                const boxMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
-                const box = new THREE.Mesh(boxGeo, boxMat);
-                box.position.set(1, h / 2 - 3, 0);
-
-                const colors = [0xef4444, 0xf59e0b, 0x22c55e];
-                colors.forEach((c, i) => {
-                    const bulbGeo = new THREE.SphereGeometry(0.4, 8, 8);
-                    const bulbMat = new THREE.MeshBasicMaterial({ color: c });
-                    const bulb = new THREE.Mesh(bulbGeo, bulbMat);
-                    bulb.position.set(1, h / 2 - 1.8 - (i * 1.2), 0.8);
-                    group.add(bulb);
-                });
-
-                group.add(pole);
-                group.add(box);
-
-            } else if (itemDef.id === 'prop_trash_can') {
-                // TACHO DE BASURA LOW-POLY
-                const binGeo = new THREE.CylinderGeometry(w / 2, w / 2.2, h, 10);
-                const binMesh = new THREE.Mesh(binGeo, material);
-                binMesh.castShadow = true;
-
-                const lidGeo = new THREE.CylinderGeometry(w / 1.8, w / 1.8, 0.5, 10);
-                const lidMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-                const lid = new THREE.Mesh(lidGeo, lidMat);
-                lid.position.y = h / 2 + 0.25;
-
-                group.add(binMesh);
-                group.add(lid);
-
-            } else {
-                // MODELO GENÉRICO BASE (Rectas, Edificios, Props Simples)
-                const geo = new THREE.BoxGeometry(w, h, l);
-                const mainMesh = new THREE.Mesh(geo, material);
-                mainMesh.receiveShadow = true;
-                mainMesh.castShadow = true;
-
-                if (itemDef.category === 'roads') {
-                    const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.8);
-                    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-                    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                    stripe.position.y = h / 2 + 0.1;
-                    group.add(stripe);
-                } else if (itemDef.category === 'buildings') {
-                    const winGeo = new THREE.BoxGeometry(w * 0.9, h * 0.8, l * 0.9);
-                    const winMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
-                    const windows = new THREE.Mesh(winGeo, winMat);
-                    group.add(windows);
+            } else if (itemDef.id === 'prop_parking') {
+                const lot = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), material);
+                lot.receiveShadow = true;
+                group.add(lot);
+                const lineMat = new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.78 });
+                for (let x = -w / 2 + 7; x < w / 2 - 2; x += 9) {
+                    const space = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, l * 0.78), lineMat);
+                    space.position.set(x, h / 2 + 0.06, 0);
+                    group.add(space);
                 }
 
-                group.add(mainMesh);
+            } else if (itemDef.id === 'prop_green_space') {
+                const lawn = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 1 }));
+                lawn.receiveShadow = true;
+                group.add(lawn);
+
+            } else if (itemDef.id === 'prop_walkway') {
+                const deckMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.75 });
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 1.4, l), deckMat);
+                deck.position.y = h / 2 - 1.2;
+                deck.castShadow = true;
+                deck.receiveShadow = true;
+                group.add(deck);
+
+            } else {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
             }
 
-            group.userData = {
-                typeId: itemDef.id,
-                name: overrideProps.name || itemDef.name,
-                category: itemDef.category,
-                dimensions: [w, h, l],
-                color: color
-            };
-
-            group.position.set(
-                overrideProps.posX !== undefined ? overrideProps.posX : 0,
-                overrideProps.posY !== undefined ? overrideProps.posY : h / 2,
-                overrideProps.posZ !== undefined ? overrideProps.posZ : 0
-            );
-
-            if (overrideProps.rotX !== undefined) group.rotation.x = overrideProps.rotX;
-            if (overrideProps.rotY !== undefined) group.rotation.y = overrideProps.rotY;
-            if (overrideProps.rotZ !== undefined) group.rotation.z = overrideProps.rotZ;
+            group.position.set(initialPos.posX, initialPos.posY, initialPos.posZ);
+            if (extraProps.rotX) group.rotation.x = extraProps.rotX;
+            if (extraProps.rotY) group.rotation.y = extraProps.rotY;
+            if (extraProps.rotZ) group.rotation.z = extraProps.rotZ;
 
             scene.add(group);
             sceneObjects.push(group);
 
-            selectObject(group);
             updateObjectCountUI();
-
             return group;
         }
 
-        function setCategory(cat) {
+        function buildBuildingGeometry(group, itemDef, extraProps = {}) {
+            while(group.children.length > 0) { 
+                group.remove(group.children[0]); 
+            }
+
+            const [w, h, l] = itemDef.size;
+            const material = new THREE.MeshStandardMaterial({ color: itemDef.color || 0x222436, roughness: 0.8 });
+
+            const holeEnabled = extraProps.holeEnabled ?? group.userData.holeEnabled;
+            const holeW = extraProps.holeWidth ?? group.userData.holeWidth;
+            const holeH = extraProps.holeHeight ?? group.userData.holeHeight;
+
+            group.userData.holeEnabled = holeEnabled;
+            group.userData.holeWidth = holeW;
+            group.userData.holeHeight = holeH;
+
+            if (holeEnabled && (itemDef.category === 'buildings' || itemDef.id === 'bld_tunnel')) {
+                const sideW = (w - holeW) / 2;
+                const topH = h - holeH;
+
+                if (sideW > 0) {
+                    const leftGeo = new THREE.BoxGeometry(sideW, h, l);
+                    const leftMesh = new THREE.Mesh(leftGeo, material);
+                    leftMesh.position.set(-w / 2 + sideW / 2, 0, 0);
+                    leftMesh.castShadow = true; leftMesh.receiveShadow = true;
+                    group.add(leftMesh);
+
+                    const rightGeo = new THREE.BoxGeometry(sideW, h, l);
+                    const rightMesh = new THREE.Mesh(rightGeo, material);
+                    rightMesh.position.set(w / 2 - sideW / 2, 0, 0);
+                    rightMesh.castShadow = true; rightMesh.receiveShadow = true;
+                    group.add(rightMesh);
+                }
+
+                if (topH > 0) {
+                    const topGeo = new THREE.BoxGeometry(holeW, topH, l);
+                    const topMesh = new THREE.Mesh(topGeo, material);
+                    topMesh.position.set(0, h / 2 - topH / 2, 0);
+                    topMesh.castShadow = true; topMesh.receiveShadow = true;
+                    group.add(topMesh);
+                }
+
+                const frameMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+                const frameGeo = new THREE.BoxGeometry(holeW + 1, 1, l + 0.5);
+                const frameTop = new THREE.Mesh(frameGeo, frameMat);
+                frameTop.position.set(0, -h / 2 + holeH, 0);
+                group.add(frameTop);
+
+            } else {
+                const geo = new THREE.BoxGeometry(w, h, l);
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                group.add(mesh);
+            }
+        }
+
+        // ==========================================
+        // GIZMO DE ROTACIÓN 3D
+        // ==========================================
+        function createRotationGizmoGroup() {
+            rotationGizmoGroup = new THREE.Group();
+
+            const createRing = (color, axis) => {
+                const ringGeo = new THREE.TorusGeometry(12, 0.5, 16, 64);
+                const ringMat = new THREE.MeshBasicMaterial({ color: color, depthTest: false, transparent: true, opacity: 0.9 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.userData = { isGizmoRing: true, axis: axis };
+                ring.renderOrder = 999;
+
+                if (axis === 'x') ring.rotation.y = Math.PI / 2;
+                if (axis === 'y') ring.rotation.x = Math.PI / 2;
+                return ring;
+            };
+
+            rotationGizmoGroup.add(createRing(0xfb7185, 'x'));
+            rotationGizmoGroup.add(createRing(0x34d399, 'y'));
+            rotationGizmoGroup.add(createRing(0x22d3ee, 'z'));
+            rotationGizmoGroup.visible = false;
+            scene.add(rotationGizmoGroup);
+        }
+
+        function updateGizmoPositionAndScale() {
+            if (!rotationGizmoGroup) return;
+
+            if (selectedObject && currentMode === 'rotate' && !isTestingDrive) {
+                rotationGizmoGroup.position.copy(selectedObject.position);
+                rotationGizmoGroup.visible = true;
+
+                const dist = camera.position.distanceTo(selectedObject.position);
+                const scale = dist * 0.015;
+                rotationGizmoGroup.scale.set(scale, scale, scale);
+            } else {
+                rotationGizmoGroup.visible = false;
+            }
+        }
+
+        // ==========================================
+        // MODO COLOCACIÓN / STAMP (GHOST PREVIEW)
+        // ==========================================
+        function switchCategory(cat) {
             currentCategory = cat;
-            ['roads', 'buildings', 'props'].forEach(c => {
-                const btn = document.getElementById(`tab-${c}`);
-                if (btn) {
-                    if (c === cat) {
-                        btn.className = "flex-1 py-2 text-center border-b-2 border-burnout-pink text-white font-bold";
-                    } else {
-                        btn.className = "flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-bold";
-                    }
+            ['Roads', 'Buildings', 'Props'].forEach(c => {
+                const btn = document.getElementById(`tab${c}`);
+                if (c.toLowerCase() === cat) {
+                    btn.className = 'clay-btn-pink flex-1 py-2 text-center rounded-xl transition';
+                } else {
+                    btn.className = 'clay-btn flex-1 py-2 text-center rounded-xl transition shadow-none bg-transparent';
                 }
             });
             renderCatalogItems();
@@ -954,27 +1153,115 @@
 
             const filtered = ITEM_DEFINITIONS.filter(i => i.category === currentCategory);
             filtered.forEach(item => {
+                const isSelectedForPlacement = activePlacementItem && activePlacementItem.id === item.id;
                 const card = document.createElement('div');
-                card.className = "p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-burnout-pink/50 rounded-xl cursor-pointer transition flex items-center justify-between group";
-                card.onclick = () => createSceneObject(item);
-
+                card.className = `clay-card p-4 flex items-center justify-between cursor-pointer ${isSelectedForPlacement ? 'active' : ''}`;
+                card.onclick = () => selectCatalogItemForPlacement(item);
                 card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center text-burnout-pink group-hover:scale-110 transition">
-                            <i class="fa-solid ${item.icon}"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-slate-200 group-hover:text-white">${item.name}</div>
-                            <div class="text-[10px] font-mono text-slate-500">${item.size[0]}x${item.size[2]} studs</div>
-                        </div>
+                    <div>
+                        <div class="text-xs font-bold text-white transition">${item.name}</div>
+                        <div class="text-[10px] font-mono text-slate-400 mt-1">${item.size[0]}x${item.size[2]} studs ${isSelectedForPlacement ? '• Listo' : ''}</div>
                     </div>
-                    <i class="fa-solid fa-plus text-slate-600 group-hover:text-burnout-pink text-xs"></i>
+                    <div class="w-6 h-6 rounded-full clay-inset flex items-center justify-center shrink-0">
+                        <i class="fa-solid ${isSelectedForPlacement ? 'fa-check text-burnout-pink' : 'fa-plus text-slate-500'} text-[10px] transition"></i>
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
+        function selectCatalogItemForPlacement(itemDef) {
+            if (activePlacementItem && activePlacementItem.id === itemDef.id) {
+                cancelPlacement();
+                return;
+            }
+
+            cancelPlacement();
+            activePlacementItem = itemDef;
+            setEditorMode('select');
+            deselectObject();
+
+            placementGhostGroup = new THREE.Group();
+            const tempObj = createSceneObject(itemDef, { posX: 0, posY: itemDef.size[1] / 2, posZ: 0 });
+            
+            scene.remove(tempObj);
+            sceneObjects = sceneObjects.filter(o => o !== tempObj);
+
+            tempObj.traverse(child => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshBasicMaterial({
+                        color: 0x06b6d4,
+                        transparent: true,
+                        opacity: 0.55
+                    });
+                }
+            });
+
+            placementGhostGroup.add(tempObj);
+            scene.add(placementGhostGroup);
+
+            document.getElementById('placementHudBadge').classList.remove('hidden');
+            document.getElementById('placementItemNameText').innerText = `Colocando: ${itemDef.name}`;
+            showToast(`Haz click en la grilla para estampar '${itemDef.name}'. ESC para salir.`, "info");
+            
+            renderCatalogItems();
+        }
+
+        function cancelPlacement() {
+            if (placementGhostGroup) {
+                scene.remove(placementGhostGroup);
+                placementGhostGroup = null;
+            }
+            activePlacementItem = null;
+            
+            const badge = document.getElementById('placementHudBadge');
+            if (badge) badge.classList.add('hidden');
+            
+            renderCatalogItems();
+        }
+
+        // ==========================================
+        // MANEJO DE SIDEBARS COLAPSABLES
+        // ==========================================
+        function toggleLeftSidebar() {
+            const sidebar = document.getElementById('leftSidebar');
+            const btnRestore = document.getElementById('btnRestoreLeft');
+            if (!sidebar || !btnRestore) return;
+            
+            const isHidden = sidebar.classList.contains('hidden');
+            if (isHidden) {
+                sidebar.classList.remove('hidden');
+                btnRestore.classList.add('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                btnRestore.classList.remove('hidden');
+            }
+            forceResizeCanvas();
+            setTimeout(forceResizeCanvas, 50);
+        }
+
+        function toggleRightSidebar() {
+            const sidebar = document.getElementById('rightSidebar');
+            const btnRestore = document.getElementById('btnRestoreRight');
+            if (!sidebar || !btnRestore) return;
+            
+            const isHidden = sidebar.classList.contains('hidden');
+            if (isHidden) {
+                sidebar.classList.remove('hidden');
+                btnRestore.classList.add('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                btnRestore.classList.remove('hidden');
+            }
+            forceResizeCanvas();
+            setTimeout(forceResizeCanvas, 50);
+        }
+
+        // ==========================================
+        // SINCRONIZACIÓN DEL INSPECTOR
+        // ==========================================
         function selectObject(obj) {
+            if (activePlacementItem) return;
             deselectObject();
             selectedObject = obj;
 
@@ -989,115 +1276,7 @@
             selectedObject = null;
             document.getElementById('noSelectionState').classList.remove('hidden');
             document.getElementById('activeSelectionState').classList.add('hidden');
-            if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
-        }
-
-        function updateInspectorValues() {
-            if (!selectedObject) return;
-
-            document.getElementById('inspItemType').innerText = selectedObject.userData.category || 'Objeto';
-            document.getElementById('inspItemName').value = selectedObject.userData.name || 'Sin nombre';
-
-            // Posición
-            document.getElementById('numPosX').value = Math.round(selectedObject.position.x);
-            document.getElementById('sliderPosX').value = Math.round(selectedObject.position.x);
-
-            document.getElementById('numPosY').value = selectedObject.position.y;
-            document.getElementById('sliderPosY').value = selectedObject.position.y;
-
-            document.getElementById('numPosZ').value = Math.round(selectedObject.position.z);
-            document.getElementById('sliderPosZ').value = Math.round(selectedObject.position.z);
-
-            // Rotación
-            const rx = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.x));
-            const ry = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.y));
-            const rz = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.z));
-
-            document.getElementById('sliderRotX').value = (rx % 360 + 360) % 360;
-            document.getElementById('numRotXVal').innerText = `${(rx % 360 + 360) % 360}°`;
-
-            document.getElementById('sliderRotY').value = (ry % 360 + 360) % 360;
-            document.getElementById('numRotYVal').innerText = `${(ry % 360 + 360) % 360}°`;
-
-            document.getElementById('sliderRotZ').value = (rz % 360 + 360) % 360;
-            document.getElementById('numRotZVal').innerText = `${(rz % 360 + 360) % 360}°`;
-
-            // Dimensiones
-            const dims = selectedObject.userData.dimensions || [10, 10, 10];
-            document.getElementById('numScaleX').value = dims[0];
-            document.getElementById('sliderScaleX').value = dims[0];
-
-            document.getElementById('numScaleY').value = dims[1];
-            document.getElementById('sliderScaleY').value = dims[1];
-
-            document.getElementById('numScaleZ').value = dims[2];
-            document.getElementById('sliderScaleZ').value = dims[2];
-
-            // Color
-            if (selectedObject.userData.color) {
-                const hexColor = "#" + selectedObject.userData.color.toString(16).padStart(6, '0');
-                document.getElementById('pickerColor').value = hexColor;
-            }
-        }
-
-        function onPosInputChange(axis, val) {
-            if (!selectedObject) return;
-            selectedObject.position[axis] = parseFloat(val) || 0;
-            updateInspectorValues();
             updateGizmoPositionAndScale();
-        }
-
-        function onPosSliderChange(axis, val) {
-            if (!selectedObject) return;
-            selectedObject.position[axis] = parseFloat(val);
-            updateInspectorValues();
-            updateGizmoPositionAndScale();
-        }
-
-        function onRotSliderAxisChange(axis, degVal) {
-            if (!selectedObject) return;
-            selectedObject.rotation[axis] = THREE.MathUtils.degToRad(parseFloat(degVal));
-            updateInspectorValues();
-            updateGizmoPositionAndScale();
-        }
-
-        function rotateSelectedYawBy(deg) {
-            if (!selectedObject) return;
-            selectedObject.rotation.y = THREE.MathUtils.degToRad(deg);
-            updateInspectorValues();
-            updateGizmoPositionAndScale();
-        }
-
-        function onScaleInputChange(axis, val) {
-            if (!selectedObject) return;
-            const dims = selectedObject.userData.dimensions || [10, 10, 10];
-            const idx = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
-            dims[idx] = Math.max(1, parseFloat(val) || 1);
-            selectedObject.userData.dimensions = dims;
-
-            selectedObject.scale[axis] = dims[idx] / (ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.typeId)?.size[idx] || 10);
-            updateInspectorValues();
-        }
-
-        function onScaleSliderChange(axis, val) {
-            onScaleInputChange(axis, val);
-        }
-
-        function onColorChange(hexVal) {
-            if (!selectedObject) return;
-            const colorInt = parseInt(hexVal.replace('#', ''), 16);
-            selectedObject.userData.color = colorInt;
-
-            selectedObject.traverse(child => {
-                if (child.isMesh && child.material && !child.userData.isGizmoRing) {
-                    child.material.color.setHex(colorInt);
-                }
-            });
-        }
-
-        function updateSelectedName(nameVal) {
-            if (!selectedObject) return;
-            selectedObject.userData.name = nameVal;
         }
 
         function deleteSelectedObject() {
@@ -1111,58 +1290,182 @@
 
         function duplicateSelectedObject() {
             if (!selectedObject) return;
-            const itemDef = ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.typeId) || ITEM_DEFINITIONS[0];
-            
-            const dup = createSceneObject(itemDef, {
-                name: selectedObject.userData.name + " (Copia)",
-                dimensions: [...selectedObject.userData.dimensions],
-                color: selectedObject.userData.color,
+            const itemDef = ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.id);
+            if (!itemDef) return;
+
+            const newPos = {
                 posX: selectedObject.position.x + 10,
                 posY: selectedObject.position.y,
-                posZ: selectedObject.position.z + 10,
+                posZ: selectedObject.position.z + 10
+            };
+
+            const dupObj = createSceneObject(itemDef, newPos, {
                 rotX: selectedObject.rotation.x,
                 rotY: selectedObject.rotation.y,
-                rotZ: selectedObject.rotation.z
+                rotZ: selectedObject.rotation.z,
+                holeEnabled: selectedObject.userData.holeEnabled,
+                holeWidth: selectedObject.userData.holeWidth,
+                holeHeight: selectedObject.userData.holeHeight
             });
 
+            selectObject(dupObj);
             showToast("Objeto duplicado", "success");
         }
 
-        function clearMapPrompt() {
-            if (sceneObjects.length === 0) return;
-            sceneObjects.forEach(obj => scene.remove(obj));
-            sceneObjects = [];
-            deselectObject();
-            updateObjectCountUI();
-            showToast("Escena vaciada correctamente", "info");
+        function updateInspectorValues() {
+            if (!selectedObject) return;
+
+            document.getElementById('inspectorCategoryText').innerText = (selectedObject.userData.category || 'OBJECT').toUpperCase();
+            document.getElementById('inspectorObjectNameText').innerText = selectedObject.userData.name || 'Objeto 3D';
+
+            document.getElementById('numPosX').value = Math.round(selectedObject.position.x);
+            document.getElementById('slidePosX').value = selectedObject.position.x;
+            document.getElementById('numPosY').value = selectedObject.position.y;
+            document.getElementById('slidePosY').value = selectedObject.position.y;
+            document.getElementById('numPosZ').value = Math.round(selectedObject.position.z);
+            document.getElementById('slidePosZ').value = selectedObject.position.z;
+
+            const rotDegX = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.x));
+            const rotDegY = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.y));
+            const rotDegZ = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.z));
+
+            document.getElementById('txtRotX').innerText = `${rotDegX}°`;
+            document.getElementById('slideRotX').value = (rotDegX + 360) % 360;
+            document.getElementById('txtRotY').innerText = `${rotDegY}°`;
+            document.getElementById('slideRotY').value = (rotDegY + 360) % 360;
+            document.getElementById('txtRotZ').innerText = `${rotDegZ}°`;
+            document.getElementById('slideRotZ').value = (rotDegZ + 360) % 360;
+
+            const holePanel = document.getElementById('buildingHolePanel');
+            if (selectedObject.userData.category === 'buildings') {
+                holePanel.classList.remove('hidden');
+                const chk = document.getElementById('chkEnableHole');
+                const controls = document.getElementById('holeControlsContainer');
+                chk.checked = !!selectedObject.userData.holeEnabled;
+                controls.className = chk.checked ? 'space-y-3 pt-1' : 'hidden';
+
+                document.getElementById('slideHoleW').value = selectedObject.userData.holeWidth || 20;
+                document.getElementById('txtHoleW').innerText = selectedObject.userData.holeWidth || 20;
+                document.getElementById('slideHoleH').value = selectedObject.userData.holeHeight || 14;
+                document.getElementById('txtHoleH').innerText = selectedObject.userData.holeHeight || 14;
+            } else {
+                holePanel.classList.add('hidden');
+            }
         }
 
+        function updateObjectTransformFromSliders() {
+            if (!selectedObject) return;
+
+            selectedObject.position.x = parseFloat(document.getElementById('slidePosX').value);
+            selectedObject.position.y = parseFloat(document.getElementById('slidePosY').value);
+            selectedObject.position.z = parseFloat(document.getElementById('slidePosZ').value);
+
+            selectedObject.rotation.x = THREE.MathUtils.degToRad(parseFloat(document.getElementById('slideRotX').value));
+            selectedObject.rotation.y = THREE.MathUtils.degToRad(parseFloat(document.getElementById('slideRotY').value));
+            selectedObject.rotation.z = THREE.MathUtils.degToRad(parseFloat(document.getElementById('slideRotZ').value));
+
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function updateObjectTransformFromInputs() {
+            if (!selectedObject) return;
+
+            selectedObject.position.x = parseFloat(document.getElementById('numPosX').value) || 0;
+            selectedObject.position.y = parseFloat(document.getElementById('numPosY').value) || 0;
+            selectedObject.position.z = parseFloat(document.getElementById('numPosZ').value) || 0;
+
+            updateInspectorValues();
+            updateGizmoPositionAndScale();
+        }
+
+        function toggleBuildingHole() {
+            if (!selectedObject) return;
+            const itemDef = ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.id);
+            if (!itemDef) return;
+
+            const enabled = document.getElementById('chkEnableHole').checked;
+            selectedObject.userData.holeEnabled = enabled;
+
+            buildBuildingGeometry(selectedObject, itemDef);
+            updateInspectorValues();
+        }
+
+        function updateBuildingHoleProps() {
+            if (!selectedObject) return;
+            const itemDef = ITEM_DEFINITIONS.find(i => i.id === selectedObject.userData.id);
+            if (!itemDef) return;
+
+            selectedObject.userData.holeWidth = parseInt(document.getElementById('slideHoleW').value);
+            selectedObject.userData.holeHeight = parseInt(document.getElementById('slideHoleH').value);
+
+            buildBuildingGeometry(selectedObject, itemDef);
+            updateInspectorValues();
+        }
+
+        // ==========================================
+        // EVENTOS DE ENTRADA, MOUSE Y TOUCH
+        // ==========================================
         function setupEventListeners() {
-            const container = document.getElementById('canvas3DContainer');
+            const viewport = document.getElementById('canvasViewport');
 
-            container.addEventListener('mousedown', onMouseDown);
-            container.addEventListener('mousemove', onMouseMove);
-            container.addEventListener('mouseup', onMouseUp);
-            container.addEventListener('wheel', onMouseWheel);
+            viewport.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
 
-            container.addEventListener('touchstart', onTouchStart, { passive: false });
-            container.addEventListener('touchmove', onTouchMove, { passive: false });
-            container.addEventListener('touchend', onTouchEnd, { passive: false });
+            viewport.addEventListener('wheel', onWheel, { passive: false });
 
-            container.addEventListener('contextmenu', e => e.preventDefault());
+            viewport.addEventListener('touchstart', onTouchStart, { passive: false });
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
 
             window.addEventListener('keydown', e => {
                 keysPressed[e.key.toLowerCase()] = true;
-                if (e.key === 'Escape' && isTestingDrive) stopTestDrive();
+                if (e.key === 'Escape') {
+                    if (isTestingDrive) stopTestDrive();
+                    else cancelPlacement();
+                }
                 if ((e.key === 'Delete' || e.key === 'Backspace') && selectedObject && !isTestingDrive) deleteSelectedObject();
             });
 
             window.addEventListener('keyup', e => {
                 keysPressed[e.key.toLowerCase()] = false;
             });
+        }
 
-            window.addEventListener('resize', onWindowResize);
-            setupTouchDriveControls();
+        function resetCameraView(view) {
+            cameraTarget.set(0, 0, 0);
+            if (view === 'top') {
+                cameraTheta = 0;
+                cameraPhi = 0.0001; 
+                cameraRadius = 250;
+            } else {
+                cameraTheta = Math.PI / 4;
+                cameraPhi = Math.PI / 3;
+                cameraRadius = 120;
+            }
+            updateCameraPosition();
+        }
+
+        function focusSelectedObject() {
+            if (selectedObject) {
+                cameraTarget.copy(selectedObject.position);
+                updateCameraPosition();
+            }
+        }
+
+        function onWheel(e) {
+            if (isTestingDrive) return;
+            e.preventDefault();
+            const zoomSpeed = 0.08;
+            cameraRadius = Math.max(15, Math.min(500, cameraRadius + e.deltaY * zoomSpeed));
+            updateCameraPosition();
+        }
+
+        function changeZoom(delta) {
+            if (isTestingDrive) return;
+            cameraRadius = Math.max(15, Math.min(500, cameraRadius + delta));
+            updateCameraPosition();
         }
 
         function onMouseDown(e) {
@@ -1170,16 +1473,35 @@
             mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-            if (e.button === 2 || isTestingDrive) { // Click Derecho o cualquier click en Prueba (para cámara libre)
+            if (e.button === 2 || isTestingDrive) {
+                if (activePlacementItem) { cancelPlacement(); return; }
                 isOrbiting = true;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
-                if (isTestingDrive) return; // Salir para no procesar selección ni mover bloques en Prueba
+                return;
             }
 
-            if (e.button === 0) { // Click Izquierdo (Modo Editor)
+            if (e.button === 0) {
+                if (activePlacementItem && placementGhostGroup) {
+                    raycaster.setFromCamera(mouse, camera);
+                    dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0));
+                    
+                    if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
+                        const snapX = Math.round(planeIntersection.x / 5) * 5;
+                        const snapZ = Math.round(planeIntersection.z / 5) * 5;
+
+                        createSceneObject(activePlacementItem, {
+                            posX: snapX,
+                            posY: activePlacementItem.size[1] / 2,
+                            posZ: snapZ
+                        });
+
+                        showToast(`Pieza colocada en (${snapX}, ${snapZ})`, "success");
+                    }
+                    return;
+                }
+
                 raycaster.setFromCamera(mouse, camera);
 
-                // Check Gizmo intersection if in rotate mode
                 if (currentMode === 'rotate' && rotationGizmoGroup && rotationGizmoGroup.visible) {
                     const gizmoHits = raycaster.intersectObjects(rotationGizmoGroup.children);
                     if (gizmoHits.length > 0) {
@@ -1197,7 +1519,6 @@
                     }
                 }
 
-                // Raycast Scene Objects
                 const hits = raycaster.intersectObjects(sceneObjects, true);
                 if (hits.length > 0) {
                     let rootObj = hits[0].object;
@@ -1223,46 +1544,56 @@
         }
 
         function onMouseMove(e) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            if (activePlacementItem && placementGhostGroup) {
+                raycaster.setFromCamera(mouse, camera);
+                dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0));
+                
+                if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
+                    const snapX = Math.round(planeIntersection.x / 5) * 5;
+                    const snapZ = Math.round(planeIntersection.z / 5) * 5;
+                    placementGhostGroup.position.set(snapX, 0, snapZ);
+                }
+                return;
+            }
+
             if (isOrbiting) {
                 const deltaX = e.clientX - previousMousePosition.x;
                 const deltaY = e.clientY - previousMousePosition.y;
 
                 if (isTestingDrive) {
                     chaseCameraOffset -= deltaX * 0.005;
-                    cameraPhi -= deltaY * 0.005;
+                    cameraPhi = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, cameraPhi - deltaY * 0.005));
                 } else {
                     cameraTheta -= deltaX * 0.005;
-                    cameraPhi -= deltaY * 0.005;
+                    cameraPhi = Math.max(0.0001, Math.min(Math.PI / 2 - 0.05, cameraPhi - deltaY * 0.005));
                     updateCameraPosition();
                 }
                 previousMousePosition = { x: e.clientX, y: e.clientY };
                 return;
             }
 
-            if (isTestingDrive) return; // Bloquear arrastre de objetos al probar pista
+            if (isTestingDrive) return;
 
             if (activeGizmoAxis && selectedObject) {
                 const deltaX = e.clientX - gizmoStartMouse.x;
-                const sensitivity = 0.01;
-                selectedObject.rotation[activeGizmoAxis] = gizmoStartRotation[activeGizmoAxis] + deltaX * sensitivity;
+                selectedObject.rotation[activeGizmoAxis] = gizmoStartRotation[activeGizmoAxis] + deltaX * 0.01;
                 updateInspectorValues();
                 updateGizmoPositionAndScale();
                 return;
             }
 
             if (isDragging3D && selectedObject) {
-                const rect = renderer.domElement.getBoundingClientRect();
-                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
                 raycaster.setFromCamera(mouse, camera);
                 if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
-                    selectedObject.position.x = Math.round(planeIntersection.x - dragOffset.x);
-                    selectedObject.position.z = Math.round(planeIntersection.z - dragOffset.z);
+                    selectedObject.position.x = Math.round((planeIntersection.x - dragOffset.x) / 5) * 5;
+                    selectedObject.position.z = Math.round((planeIntersection.z - dragOffset.z) / 5) * 5;
                     updateInspectorValues();
                     updateGizmoPositionAndScale();
                 }
-                return;
             }
         }
 
@@ -1272,368 +1603,495 @@
             activeGizmoAxis = null;
         }
 
-        function onMouseWheel(e) {
-            if (isTestingDrive) return;
-            cameraRadius = Math.max(20, Math.min(500, cameraRadius + e.deltaY * 0.1));
-            updateCameraPosition();
-        }
-
         function onTouchStart(e) {
-            e.preventDefault();
-
             if (e.touches.length === 1) {
-                isTouchPinching = false;
-                const touch = e.touches[0];
-                onMouseDown({
-                    clientX: touch.clientX,
-                    clientY: touch.clientY,
-                    button: 0
-                });
+                onMouseDown({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, button: 0 });
             } else if (e.touches.length === 2) {
-                isTouchPinching = true;
-                isDragging3D = false;
-                activeGizmoAxis = null;
-
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                initialTouchDistance = Math.hypot(dx, dy);
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
             }
         }
 
         function onTouchMove(e) {
-            e.preventDefault();
-
-            if (e.touches.length === 1 && !isTouchPinching) {
-                const touch = e.touches[0];
-                onMouseMove({
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-            } else if (e.touches.length === 2 && isTouchPinching) {
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                const currentDistance = Math.hypot(dx, dy);
-
-                if (initialTouchDistance > 0) {
-                    const factor = (initialTouchDistance - currentDistance) * 0.5;
-                    cameraRadius = Math.max(20, Math.min(500, cameraRadius + factor));
-                    initialTouchDistance = currentDistance;
-                    if (!isTestingDrive) updateCameraPosition();
-                }
+            if (e.touches.length === 1) {
+                onMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+            } else if (e.touches.length === 2 && initialPinchDistance !== null && !isTestingDrive) {
+                e.preventDefault();
+                const currentDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const delta = (initialPinchDistance - currentDist) * 0.4;
+                cameraRadius = Math.max(15, Math.min(500, cameraRadius + delta));
+                initialPinchDistance = currentDist;
+                updateCameraPosition();
             }
         }
 
         function onTouchEnd(e) {
-            if (e.touches.length === 0) {
-                isTouchPinching = false;
-                onMouseUp();
+            if (e.touches.length < 2) {
+                initialPinchDistance = null;
             }
+            onMouseUp();
         }
 
-        function createTestCarMesh() {
-            carMesh = new THREE.Group();
-
-            // Cuerpo principal del auto
-            const bodyGeo = new THREE.BoxGeometry(6, 2.5, 12);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe02484, roughness: 0.2, metalness: 0.8 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 1.5;
-            carMesh.add(body);
-
-            // Cabina (Desplazada hacia atrás en +Z, asegurando que el morro largo sea visualmente el frente -Z)
-            const cabinGeo = new THREE.BoxGeometry(4.5, 1.8, 6);
-            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
-            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-            cabin.position.set(0, 3.2, 1.5); 
-            carMesh.add(cabin);
-
-            // Faros Delanteros Blancos (Frente es -Z)
-            const hlGeo = new THREE.BoxGeometry(1.5, 0.5, 0.5);
-            const hlMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const hlLeft = new THREE.Mesh(hlGeo, hlMat);
-            hlLeft.position.set(-2, 1.5, -6);
-            const hlRight = new THREE.Mesh(hlGeo, hlMat);
-            hlRight.position.set(2, 1.5, -6);
-            carMesh.add(hlLeft, hlRight);
-
-            // Faros Traseros Rojos (Atrás es +Z)
-            const tlMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const tlLeft = new THREE.Mesh(hlGeo, tlMat);
-            tlLeft.position.set(-2, 1.5, 6);
-            const tlRight = new THREE.Mesh(hlGeo, tlMat);
-            tlRight.position.set(2, 1.5, 6);
-            carMesh.add(tlLeft, tlRight);
-
-            carMesh.visible = false;
-            scene.add(carMesh);
-        }
-
+        // ==========================================
+        // MODO PRUEBA DE CONDUCCIÓN (TEST DRIVE)
+        // ==========================================
         function startTestDrive() {
-            if (sceneObjects.length === 0) {
-                showToast("Agrega al menos una pieza antes de probar la pista.", "error");
-                return;
-            }
-
+            if (isTestingDrive) return;
             isTestingDrive = true;
-            deselectObject();
 
-            let startObj = sceneObjects[0];
-            carMesh.position.set(startObj.position.x, startObj.position.y + 3, startObj.position.z);
-            carMesh.rotation.set(0, startObj.rotation.y, 0); // Alinear el coche con la dirección de la pista
-            carMesh.visible = true;
-
-            carSpeed = 0;
-            nitroCharge = 100;
-            chaseCameraOffset = 0; // Resetear el ángulo de cámara libre
-            
-            // Posicionar la cámara trasera (Chase Cam) perfecta
-            cameraTheta = carMesh.rotation.y;
-            cameraPhi = 1.35; // Ángulo bajo pegado a la calle
-            cameraRadius = 35; // Distancia más corta
-            updateCameraPosition();
-
-            document.getElementById('driveHud').classList.remove('hidden');
-            
-            // Ocultar Interfaz del Editor de Mapas
+            // Ocultar UI Completa de Editor
             document.getElementById('mainHeader').classList.add('hidden');
-            document.getElementById('statusHud').classList.add('hidden');
-            document.getElementById('floatingCamControls').classList.add('hidden');
             document.getElementById('leftSidebar').classList.add('hidden');
+            document.getElementById('btnRestoreLeft').classList.add('hidden');
             document.getElementById('rightSidebar').classList.add('hidden');
-            document.getElementById('btnOpenLeftSidebar').classList.add('hidden');
-            document.getElementById('btnOpenRightSidebar').classList.add('hidden');
-            
-            setTimeout(onWindowResize, 50);
+            document.getElementById('btnRestoreRight').classList.add('hidden');
+            document.getElementById('statusHud').classList.add('hidden');
+            document.getElementById('cameraControlsHud').classList.add('hidden');
 
-            showToast("Modo Prueba de Conducción Activo", "success");
+            document.getElementById('testDriveHud').classList.remove('hidden');
+
+            if (testCarGroup) scene.remove(testCarGroup);
+            testCarGroup = new THREE.Group();
+
+            // Chasis
+            const bodyGeo = new THREE.BoxGeometry(6, 3, 12);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.6, roughness: 0.4 });
+            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+            bodyMesh.position.set(0, 1.5, 0);
+            bodyMesh.castShadow = true;
+            testCarGroup.add(bodyMesh);
+
+            // Cabina trasera
+            const cabinGeo = new THREE.BoxGeometry(5, 2.2, 6);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1e202e, roughness: 0.2 });
+            const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
+            cabinMesh.position.set(0, 3.8, 1);
+            testCarGroup.add(cabinMesh);
+
+            // Faros Frontales (Blancos, Z negativo es adelante)
+            const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            [-2, 2].forEach(x => {
+                const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.2), headMat);
+                head.position.set(x, 1.6, -6);
+                testCarGroup.add(head);
+            });
+
+            // Luces Traseras (Rojas, Z positivo es atrás)
+            const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            [-2, 2].forEach(x => {
+                const tail = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.2), tailMat);
+                tail.position.set(x, 1.6, 6);
+                testCarGroup.add(tail);
+            });
+
+            const startX = selectedObject ? selectedObject.position.x : 0;
+            const startZ = selectedObject ? selectedObject.position.z : 0;
+            const startAngle = selectedObject ? selectedObject.rotation.y : 0;
+
+            carPhysics = {
+                pos: new THREE.Vector3(startX, 1, startZ),
+                speed: 0,
+                angle: startAngle,
+                maxSpeed: 110,
+                nitro: 100,
+                isBoosting: false
+            };
+
+            testCarGroup.position.copy(carPhysics.pos);
+            testCarGroup.rotation.y = carPhysics.angle;
+            scene.add(testCarGroup);
+
+            if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
+
+            // Ajustar Cámara Chase
+            cameraPhi = 1.35;
+            cameraRadius = 35;
+            chaseCameraOffset = 0;
+
+            showToast("Modo Probar Pista activado (WASD/Flechas | Espacio: Nitro)", "info");
         }
 
         function stopTestDrive() {
+            if (!isTestingDrive) return;
             isTestingDrive = false;
-            if (carMesh) carMesh.visible = false;
-            document.getElementById('driveHud').classList.add('hidden');
 
-            // Restaurar Interfaz del Editor
+            if (testCarGroup) {
+                scene.remove(testCarGroup);
+                testCarGroup = null;
+            }
+
+            // Restaurar UI del Editor
             document.getElementById('mainHeader').classList.remove('hidden');
-            document.getElementById('statusHud').classList.remove('hidden');
-            document.getElementById('floatingCamControls').classList.remove('hidden');
             document.getElementById('leftSidebar').classList.remove('hidden');
             document.getElementById('rightSidebar').classList.remove('hidden');
-            
-            setTimeout(onWindowResize, 50);
+            document.getElementById('statusHud').classList.remove('hidden');
+            document.getElementById('cameraControlsHud').classList.remove('hidden');
+            document.getElementById('testDriveHud').classList.add('hidden');
 
-            cameraTarget.set(0, 0, 0);
-            cameraRadius = 150;
-            cameraTheta = Math.PI / 4;
-            cameraPhi = Math.PI / 4;
-            updateCameraPosition();
+            resetCameraView('orbit');
+            updateGizmoPositionAndScale();
         }
 
-        function setupTouchDriveControls() {
-            const bindControl = (id, key) => {
-                const btn = document.getElementById(id);
-                if (!btn) return;
+        function updateTestDrivePhysics(delta) {
+            const accel = keysPressed['w'] || keysPressed['arrowup'] || touchDriveControls.forward;
+            const brake = keysPressed['s'] || keysPressed['arrowdown'] || touchDriveControls.backward;
+            const turnLeft = keysPressed['a'] || keysPressed['arrowleft'] || touchDriveControls.left;
+            const turnRight = keysPressed['d'] || keysPressed['arrowright'] || touchDriveControls.right;
+            const nitroPressed = keysPressed[' '] || touchDriveControls.nitro;
 
-                const down = (e) => { e.preventDefault(); keysPressed[key] = true; };
-                const up = (e) => { e.preventDefault(); keysPressed[key] = false; };
-
-                btn.addEventListener('touchstart', down, { passive: false });
-                btn.addEventListener('touchend', up, { passive: false });
-                btn.addEventListener('mousedown', down);
-                btn.addEventListener('mouseup', up);
-            };
-
-            bindControl('touchBtnLeft', 'arrowleft');
-            bindControl('touchBtnRight', 'arrowright');
-            bindControl('touchBtnGas', 'arrowup');
-            bindControl('touchBtnBrake', 'arrowdown');
-            bindControl('touchBtnNitro', ' ');
-        }
-
-        function updateTestDrivePhysics() {
-            if (!isTestingDrive) return;
-
-            const isNitro = keysPressed[' '] || keysPressed['space'];
-            let maxSpeed = 180;
-
-            if (isNitro && nitroCharge > 0) {
-                maxSpeed = 260;
-                nitroCharge = Math.max(0, nitroCharge - 0.8);
-                carSpeed = Math.min(maxSpeed, carSpeed + 4.5);
-            } else if (nitroCharge < 100 && !isNitro) {
-                nitroCharge = Math.min(100, nitroCharge + 0.2);
-            }
-
-            document.getElementById('hudNitroBar').style.width = `${nitroCharge}%`;
-            document.getElementById('hudNitroText').innerText = `${Math.round(nitroCharge)}%`;
-
-            if (keysPressed['w'] || keysPressed['arrowup']) {
-                carSpeed = Math.min(maxSpeed, carSpeed + 2.5);
-            } else if (keysPressed['s'] || keysPressed['arrowdown']) {
-                carSpeed = Math.max(-60, carSpeed - 2.0);
+            if (nitroPressed && carPhysics.nitro > 0) {
+                carPhysics.isBoosting = true;
+                carPhysics.nitro = Math.max(0, carPhysics.nitro - delta * 30);
             } else {
-                carSpeed *= 0.96;
+                carPhysics.isBoosting = false;
+                if (!nitroPressed) carPhysics.nitro = Math.min(100, carPhysics.nitro + delta * 10);
             }
 
-            if (keysPressed['a'] || keysPressed['arrowleft']) carMesh.rotation.y += 0.04 * (carSpeed / 100);
-            if (keysPressed['d'] || keysPressed['arrowright']) carMesh.rotation.y -= 0.04 * (carSpeed / 100);
-
-            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), carMesh.rotation.y);
-            carMesh.position.addScaledVector(forward, carSpeed * 0.02);
-
-            cameraTarget.copy(carMesh.position);
-            cameraRadius = 35;
+            const topSpeed = carPhysics.isBoosting ? carPhysics.maxSpeed * 1.6 : carPhysics.maxSpeed;
             
-            // Si hay movimiento y soltamos la cámara libre, interpolar suavemente hacia atrás del auto
-            if (!isOrbiting && Math.abs(carSpeed) > 5) {
-                chaseCameraOffset *= 0.95;
-                cameraPhi += (1.35 - cameraPhi) * 0.05; // Auto-centrar también la altura
-            }
-            
-            cameraTheta = carMesh.rotation.y + chaseCameraOffset;
-            
-            updateCameraPosition();
-
-            document.getElementById('hudSpeed').innerText = `${Math.round(Math.abs(carSpeed))} MPH`;
-        }
-
-        function toggleLeftSidebar() {
-            const sidebar = document.getElementById('leftSidebar');
-            const btnOpen = document.getElementById('btnOpenLeftSidebar');
-            sidebar.classList.toggle('hidden');
-            btnOpen.classList.toggle('hidden');
-            setTimeout(onWindowResize, 50);
-        }
-
-        function toggleRightSidebar() {
-            const sidebar = document.getElementById('rightSidebar');
-            const btnOpen = document.getElementById('btnOpenRightSidebar');
-            sidebar.classList.toggle('hidden');
-            btnOpen.classList.toggle('hidden');
-            setTimeout(onWindowResize, 50);
-        }
-
-        function resetCameraView(viewType) {
-            if (viewType === 'top') {
-                cameraTarget.set(0, 0, 0);
-                cameraRadius = 250;
-                cameraPhi = 0.05;
-                cameraTheta = 0;
+            if (accel) {
+                carPhysics.speed = Math.max(-topSpeed, carPhysics.speed - delta * 80);
+            } else if (brake) {
+                carPhysics.speed = Math.min(topSpeed * 0.4, carPhysics.speed + delta * 60);
             } else {
-                cameraTarget.set(0, 0, 0);
-                cameraRadius = 150;
-                cameraPhi = Math.PI / 4;
-                cameraTheta = Math.PI / 4;
-            }
-            updateCameraPosition();
-        }
-
-        function focusSelectedObject() {
-            if (!selectedObject) {
-                showToast("Selecciona un objeto para enfocar.", "info");
-                return;
-            }
-            cameraTarget.copy(selectedObject.position);
-            cameraRadius = 80;
-            updateCameraPosition();
-        }
-
-        function onWindowResize() {
-            const container = document.getElementById('canvas3DContainer');
-            if (!container || !renderer || !camera) return;
-
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        function exportLuauScript() {
-            if (sceneObjects.length === 0) {
-                showToast("Agrega al menos una pieza al mapa antes de exportar.", "error");
-                return;
+                carPhysics.speed *= 0.95;
             }
 
-            let code = `-- ==========================================================\n`;
-            code += `-- BURNOUT MAP STUDIO - GENERATED LUAU SCRIPT\n`;
-            code += `-- Paste this script into Roblox Studio Command Bar\n`;
-            code += `-- ==========================================================\n\n`;
-            code += `local Workspace = game:GetService("Workspace")\n`;
-            code += `local burnoutDemo = Workspace:FindFirstChild("BurnoutDemo") or Instance.new("Folder")\n`;
-            code += `burnoutDemo.Name = "BurnoutDemo"\n`;
-            code += `burnoutDemo.Parent = Workspace\n\n`;
-            code += `local district = burnoutDemo:FindFirstChild("District") or Instance.new("Folder")\n`;
-            code += `district.Name = "District"\n`;
-            code += `district.Parent = burnoutDemo\n\n`;
+            if (Math.abs(carPhysics.speed) > 1) {
+                const dir = carPhysics.speed < 0 ? 1 : -1;
+                if (turnLeft) carPhysics.angle += delta * 2.2 * dir;
+                if (turnRight) carPhysics.angle -= delta * 2.2 * dir;
+            }
 
-            sceneObjects.forEach((obj, idx) => {
-                const name = (obj.userData.name || "MapPart_" + idx).replace(/[^a-zA-Z0-9_]/g, "_");
-                const [w, h, l] = obj.userData.dimensions || [10, 10, 10];
-                const colorHex = obj.userData.color ? "0x" + obj.userData.color.toString(16).padStart(6, "0") : "0x1e293b";
-                const posX = Math.round(obj.position.x * 10) / 10;
-                const posY = Math.round(obj.position.y * 10) / 10;
-                const posZ = Math.round(obj.position.z * 10) / 10;
-                
-                const rotX = Math.round(THREE.MathUtils.radToDeg(obj.rotation.x));
-                const rotY = Math.round(THREE.MathUtils.radToDeg(obj.rotation.y));
-                const rotZ = Math.round(THREE.MathUtils.radToDeg(obj.rotation.z));
+            if (!isOrbiting) {
+                chaseCameraOffset = THREE.MathUtils.lerp(chaseCameraOffset, 0, delta * 3);
+            }
 
-                code += `do -- ${name}\n`;
-                code += `    local part = Instance.new("Part")\n`;
-                code += `    part.Name = "${name}"\n`;
-                code += `    part.Size = Vector3.new(${w}, ${h}, ${l})\n`;
-                code += `    part.Position = Vector3.new(${posX}, ${posY}, ${posZ})\n`;
-                code += `    part.Orientation = Vector3.new(${rotX}, ${rotY}, ${rotZ})\n`;
-                code += `    part.Color = Color3.fromHex("${colorHex}")\n`;
-                code += `    part.Material = Enum.Material.SmoothPlastic\n`;
-                code += `    part.Anchored = true\n`;
-                code += `    part.Parent = district\n`;
-                code += `end\n\n`;
-            });
+            const moveDist = carPhysics.speed * delta;
+            carPhysics.pos.x += Math.sin(carPhysics.angle) * moveDist;
+            carPhysics.pos.z += Math.cos(carPhysics.angle) * moveDist;
 
-            code += `print("Successfully imported ${sceneObjects.length} map parts into Workspace.BurnoutDemo.District!")\n`;
+            testCarGroup.position.copy(carPhysics.pos);
+            testCarGroup.rotation.y = carPhysics.angle;
 
-            document.getElementById('luauCodeTextarea').value = code;
-            document.getElementById('luauModal').classList.remove('hidden');
-        }
+            const totalCamAngle = carPhysics.angle + chaseCameraOffset;
+            camera.position.x = carPhysics.pos.x + Math.sin(totalCamAngle) * cameraRadius;
+            camera.position.y = carPhysics.pos.y + (Math.cos(cameraPhi) * cameraRadius);
+            camera.position.z = carPhysics.pos.z + Math.cos(totalCamAngle) * cameraRadius;
+            camera.lookAt(carPhysics.pos.x, carPhysics.pos.y + 2, carPhysics.pos.z);
 
-        function closeLuauModal() {
-            document.getElementById('luauModal').classList.add('hidden');
-        }
+            const speedDisplay = Math.round(Math.abs(carPhysics.speed));
+            const speedEl = document.getElementById('speedometerValue');
+            if (speedEl) speedEl.innerText = speedDisplay;
 
-        function copyLuauCode() {
-            const textarea = document.getElementById('luauCodeTextarea');
-            textarea.select();
-            document.execCommand('copy');
-            showToast("¡Código Luau copiado al portapapeles!", "success");
-        }
-
-        function downloadHtmlMap() {
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Mapa_Burnout_${Date.now()}.html`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast("Mapa HTML descargado", "success");
+            const nitroBar = document.getElementById('hudNitroBar');
+            if (nitroBar) nitroBar.style.width = `${carPhysics.nitro}%`;
         }
 
         function animate() {
             requestAnimationFrame(animate);
+            const delta = clock.getDelta();
 
-            if (isTestingDrive) {
-                updateTestDrivePhysics();
+            if (isTestingDrive && testCarGroup) {
+                updateTestDrivePhysics(delta);
             }
 
             sceneObjects.forEach(obj => {
-                if (obj.userData.typeId === 'prop_nitro') {
-                    obj.rotation.y += 0.02;
+                if (obj.userData.id === 'prop_nitro') {
+                    obj.rotation.y += delta * 2;
                 }
             });
 
-            updateGizmoPositionAndScale();
             renderer.render(scene, camera);
+        }
+
+        // ==========================================
+        // GUARDAR / CARGAR JSON Y EXPORTAR LUAU
+        // ==========================================
+        function saveMapJson() {
+            const mapData = {
+                version: "2.6",
+                objects: sceneObjects.map(obj => ({
+                    id: obj.userData.id,
+                    name: obj.userData.name,
+                    category: obj.userData.category,
+                    size: obj.userData.size,
+                    position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
+                    rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z },
+                    extraProps: {
+                        holeEnabled: obj.userData.holeEnabled || false,
+                        holeWidth: obj.userData.holeWidth || 20,
+                        holeHeight: obj.userData.holeHeight || 14
+                    }
+                }))
+            };
+            const jsonStr = JSON.stringify(mapData, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "burnout_map_3d.json";
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Mapa guardado en JSON", "success");
+        }
+
+        function loadMapJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.objects || !Array.isArray(data.objects)) {
+                        throw new Error("Formato de JSON inválido");
+                    }
+                    [...sceneObjects].forEach(obj => scene.remove(obj));
+                    sceneObjects = [];
+                    deselectObject();
+
+                    data.objects.forEach(itemData => {
+                        const itemDef = ITEM_DEFINITIONS.find(i => i.id === itemData.id) || {
+                            id: itemData.id,
+                            name: itemData.name || 'Objeto',
+                            category: itemData.category || 'props',
+                            size: itemData.size || [10, 10, 10],
+                            color: 0x3b82f6
+                        };
+                        createSceneObject(itemDef, {
+                            posX: itemData.position.x,
+                            posY: itemData.position.y,
+                            posZ: itemData.position.z
+                        }, {
+                            rotX: itemData.rotation.x,
+                            rotY: itemData.rotation.y,
+                            rotZ: itemData.rotation.z,
+                            holeEnabled: itemData.extraProps?.holeEnabled,
+                            holeWidth: itemData.extraProps?.holeWidth,
+                            holeHeight: itemData.extraProps?.holeHeight
+                        });
+                    });
+                    updateObjectCountUI();
+                    showToast("Mapa cargado exitosamente", "success");
+                } catch (err) {
+                    showToast("Error al cargar JSON: " + err.message, "error");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ==========================================
+        // CONCEPTO PREDISEÑADO INTERACTIVO: CALCHAQUÍ / UNAJ
+        // ==========================================
+        function clearEditableMap() {
+            [...sceneObjects].forEach(obj => scene.remove(obj));
+            sceneObjects = [];
+            deselectObject();
+            updateObjectCountUI();
+        }
+
+        function addConceptObject(id, x, y, z, rotY = 0, extraProps = {}) {
+            const itemDef = ITEM_DEFINITIONS.find(item => item.id === id);
+            if (!itemDef) return null;
+            return createSceneObject(itemDef, { posX: x, posY: y, posZ: z }, { ...extraProps, rotY });
+        }
+
+        function loadCalchaquiUnajConcept() {
+            if (!scene) return;
+            clearEditableMap();
+
+            // Predio abierto: un edificio articulado rodea el patio y los anexos quedan separados.
+            addConceptObject('prop_green_space', 0, 0.15, 4, 0);
+            addConceptObject('bld_campus', 0, 16, 30, 0);
+            addConceptObject('bld_classroom', -67, 5, -24, -0.10);
+            addConceptObject('bld_pavilion_long', -28, 6.5, -58, 0);
+            addConceptObject('bld_classroom', 13, 5, -56, 0.05);
+            addConceptObject('bld_service', 58, 6.5, -42, 0.12);
+            addConceptObject('prop_parking', -82, 0.5, -30, 0.08);
+            addConceptObject('prop_walkway', -43, 6, -8, 0.0);
+            addConceptObject('prop_walkway', 38, 6, -8, 0.0);
+            addConceptObject('prop_green_space', 88, 0.15, -38, 0);
+
+            // Pocas vías perimetrales: borde norte, corredor este y borde sur.
+            [[-100, 108], [-22, 108], [56, 108]].forEach(([x, z]) =>
+                addConceptObject('road_avenue', x, 0.5, z, Math.PI / 2)
+            );
+            [[130, -58], [130, 20], [130, 98]].forEach(([x, z]) =>
+                addConceptObject('road_avenue', x, 0.5, z, 0)
+            );
+            [[-100, -100], [-22, -100], [56, -100]].forEach(([x, z]) =>
+                addConceptObject('road_avenue', x, 0.5, z, Math.PI / 2)
+            );
+            addConceptObject('road_roundabout', 130, 0.5, 108, 0);
+            addConceptObject('road_local', 96, 0.5, 108, Math.PI / 2);
+            addConceptObject('road_local', 96, 0.5, -100, Math.PI / 2);
+
+            // Avenida diagonal exterior conectada visualmente al borde norte.
+            const diagonalAvenue = Math.PI / 4;
+            [[-160, 42], [-105, 97]].forEach(([x, z]) =>
+                addConceptObject('road_avenue', x, 0.5, z, diagonalAvenue)
+            );
+
+            // Ciudad e infraestructura fuera del campus.
+            [[-200, 25, -40], [-200, 25, 160], [205, 25, -48], [215, 25, 165]].forEach(([x, y, z]) =>
+                addConceptObject('bld_block', x, y, z, 0)
+            );
+            addConceptObject('bld_glass_office', -25, 14, 166, 0);
+            addConceptObject('bld_cyan_block', 58, 8, 166, 0);
+            addConceptObject('prop_gas_station', 176, 8, -112, Math.PI / 2);
+
+            [[-94, 7, 108], [130, 7, 72], [130, 7, -86]].forEach(([x, y, z]) =>
+                addConceptObject('prop_traffic_light', x, y, z, 0)
+            );
+            [[-62, 9, 70], [-35, 9, 78], [34, 9, 72], [62, 9, 40], [-74, 9, -4], [68, 9, -18], [88, 9, -50]].forEach(([x, y, z]) =>
+                addConceptObject('prop_tree_oak', x, y, z, 0)
+            );
+            [[-74, 3, -94], [0, 3, -94], [76, 3, -94], [130, 3, 50]].forEach(([x, y, z]) =>
+                addConceptObject('prop_nitro', x, y, z, 0)
+            );
+
+            cameraTarget.set(0, 0, 8);
+            cameraRadius = 300;
+            cameraTheta = Math.PI / 4;
+            cameraPhi = Math.PI / 3.4;
+            updateCameraPosition();
+            showToast('Concepto UNAJ cargado exitosamente en el editor', 'success');
+        }
+
+        function exportLuauScript() {
+            let scriptContent = `-- Burnout Roblox Studio Map Exporter (Data-Driven V2.6 Clay)
+-- Generado automáticamente desde Burnout Studio 3D
+
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+
+local mainFolder = Workspace:FindFirstChild("BurnoutDemo") or Instance.new("Folder")
+mainFolder.Name = "BurnoutDemo"
+mainFolder.Parent = Workspace
+
+local district = mainFolder:FindFirstChild("District")
+if district then 
+    district:ClearAllChildren() -- Limpieza segura para re-exportar
+else
+    district = Instance.new("Folder")
+    district.Name = "District"
+    district.Parent = mainFolder
+end
+
+print("🔨 Generando distrito 3D desde mapa data-driven...")
+
+`;
+
+            sceneObjects.forEach((obj, idx) => {
+                const u = obj.userData;
+                const name = `${u.id}_${idx + 1}`;
+                const posX = obj.position.x.toFixed(2);
+                const posY = obj.position.y.toFixed(2);
+                const posZ = obj.position.z.toFixed(2);
+                const rotX = THREE.MathUtils.radToDeg(obj.rotation.x).toFixed(2);
+                const rotY = THREE.MathUtils.radToDeg(obj.rotation.y).toFixed(2);
+                const rotZ = THREE.MathUtils.radToDeg(obj.rotation.z).toFixed(2);
+                const [w, h, l] = u.size;
+
+                if (u.category === 'buildings' && u.holeEnabled) {
+                    const sideW = (w - u.holeWidth) / 2;
+                    const topH = h - u.holeHeight;
+
+                    scriptContent += `-- Perforación de Túnel: ${u.name}\n`;
+                    scriptContent += `local group_${idx} = Instance.new("Model")\n`;
+                    scriptContent += `group_${idx}.Name = "${name}"\n`;
+                    scriptContent += `group_${idx}:SetAttribute("AssetId", "${u.id}_holed")\n`;
+                    scriptContent += `group_${idx}.Parent = district\n\n`;
+
+                    if (sideW > 0) {
+                        scriptContent += `local pLeft = Instance.new("Part")\n`;
+                        scriptContent += `pLeft.Name = "Wall_Left"\n`;
+                        scriptContent += `pLeft.Size = Vector3.new(${sideW}, ${h}, ${l})\n`;
+                        scriptContent += `pLeft.CFrame = CFrame.new(${posX - w/2 + sideW/2}, ${posY}, ${posZ}) * CFrame.Angles(math.rad(${rotX}), math.rad(${rotY}), math.rad(${rotZ}))\n`;
+                        scriptContent += `pLeft.Anchored = true; pLeft.Material = Enum.Material.SmoothPlastic; pLeft.Parent = group_${idx}\n\n`;
+
+                        scriptContent += `local pRight = Instance.new("Part")\n`;
+                        scriptContent += `pRight.Name = "Wall_Right"\n`;
+                        scriptContent += `pRight.Size = Vector3.new(${sideW}, ${h}, ${l})\n`;
+                        scriptContent += `pRight.CFrame = CFrame.new(${posX + w/2 - sideW/2}, ${posY}, ${posZ}) * CFrame.Angles(math.rad(${rotX}), math.rad(${rotY}), math.rad(${rotZ}))\n`;
+                        scriptContent += `pRight.Anchored = true; pRight.Material = Enum.Material.SmoothPlastic; pRight.Parent = group_${idx}\n\n`;
+                    }
+
+                    if (topH > 0) {
+                        scriptContent += `local pTop = Instance.new("Part")\n`;
+                        scriptContent += `pTop.Name = "Bridge_Top"\n`;
+                        scriptContent += `pTop.Size = Vector3.new(${u.holeWidth}, ${topH}, ${l})\n`;
+                        scriptContent += `pTop.CFrame = CFrame.new(${posX}, ${posY + h/2 - topH/2}, ${posZ}) * CFrame.Angles(math.rad(${rotX}), math.rad(${rotY}), math.rad(${rotZ}))\n`;
+                        scriptContent += `pTop.Anchored = true; pTop.Material = Enum.Material.SmoothPlastic; pTop.Parent = group_${idx}\n\n`;
+                    }
+                } else if (u.id.includes('ramp')) {
+                    scriptContent += `-- Proxy Rampa: ${u.name}\n`;
+                    scriptContent += `local part_${idx} = Instance.new("WedgePart")\n`;
+                    scriptContent += `part_${idx}.Name = "${name}"\n`;
+                    scriptContent += `part_${idx}.Size = Vector3.new(${w}, ${h}, ${l})\n`;
+                    scriptContent += `part_${idx}.CFrame = CFrame.new(${posX}, ${posY}, ${posZ}) * CFrame.Angles(math.rad(${rotX}), math.rad(${rotY}), math.rad(${rotZ}))\n`;
+                    scriptContent += `part_${idx}.Anchored = true\n`;
+                    scriptContent += `part_${idx}:SetAttribute("AssetId", "${u.id}")\n`;
+                    scriptContent += `CollectionService:AddTag(part_${idx}, "RoadSurface")\n`;
+                    scriptContent += `part_${idx}.Parent = district\n\n`;
+                } else {
+                    scriptContent += `-- Proxy: ${u.name}\n`;
+                    scriptContent += `local part_${idx} = Instance.new("Part")\n`;
+                    scriptContent += `part_${idx}.Name = "${name}"\n`;
+                    scriptContent += `part_${idx}.Size = Vector3.new(${w}, ${h}, ${l})\n`;
+                    scriptContent += `part_${idx}.CFrame = CFrame.new(${posX}, ${posY}, ${posZ}) * CFrame.Angles(math.rad(${rotX}), math.rad(${rotY}), math.rad(${rotZ}))\n`;
+                    scriptContent += `part_${idx}.Anchored = true\n`;
+                    scriptContent += `part_${idx}:SetAttribute("AssetId", "${u.id}")\n`;
+                    
+                    if (u.id === 'prop_nitro') {
+                        scriptContent += `part_${idx}.CanCollide = false\n`;
+                        scriptContent += `CollectionService:AddTag(part_${idx}, "Pickup_Nitro")\n`;
+                    } else if (u.category === 'roads') {
+                        scriptContent += `CollectionService:AddTag(part_${idx}, "RoadSurface")\n`;
+                    }
+                    scriptContent += `part_${idx}.Parent = district\n\n`;
+                }
+            });
+
+            scriptContent += `print("✅ Mapa actualizado en Workspace.BurnoutDemo.District con éxito!")\n`;
+
+            const tempInput = document.createElement("textarea");
+            tempInput.value = scriptContent;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            showToast("Código Luau copiado al portapapeles!", "success");
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'clay-panel shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-900/50 text-emerald-300',
+                info: 'clay-panel shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-900/50 text-cyan-300',
+                error: 'clay-panel shadow-[0_0_15px_rgba(239,68,68,0.3)] border border-rose-900/50 text-rose-300'
+            };
+            
+            toast.className = `px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-3 pointer-events-auto transform transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-circle-info'} text-lg"></i><span>${msg}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
     </script>
 </body>
