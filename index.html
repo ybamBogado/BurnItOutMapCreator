@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Burnout Studio 3D - Claymorphism Editor</title>
+    <title>Burnout Studio 3D - Editor de Mapas Roblox</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,7 +23,7 @@
         };
     </script>
 
-    <!-- Font Awesome JS (SVG rendering for perfect icons) -->
+    <!-- Font Awesome JS (SVG rendering for icons) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <!-- Three.js 3D Library -->
@@ -63,15 +62,10 @@
         ::-webkit-scrollbar-thumb { background: #3f445c; border-radius: 4px; box-shadow: 1px 1px 2px var(--shadow-light); }
         ::-webkit-scrollbar-thumb:hover { background: #505673; }
 
-        /* Ocultar barras de scroll nativas en contenedores específicos */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* ==========================================
-           CLAYMORPHISM CORE CLASSES 
-           ========================================== */
-           
-        /* Main Puffy Panel */
+        /* Claymorphism Panel */
         .clay-panel {
             background: var(--panel-bg);
             border-radius: 24px;
@@ -83,7 +77,7 @@
             border: none;
         }
 
-        /* Inset/Carved Hole (For Canvas, Inputs, Lists) */
+        /* Inset Hole */
         .clay-inset {
             background: var(--bg-color);
             border-radius: 16px;
@@ -93,7 +87,7 @@
             border: none;
         }
 
-        /* Standard Puffy Button */
+        /* Clay Buttons */
         .clay-btn {
             background: var(--panel-bg);
             border-radius: 14px;
@@ -104,21 +98,16 @@
                 inset -2px -2px 4px rgba(0,0,0,0.2);
             border: none;
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #cbd5e1; /* slate-300 */
+            color: #cbd5e1;
             cursor: pointer;
         }
-        .clay-btn:hover {
-            color: white;
-            transform: translateY(-1px);
-        }
+        .clay-btn:hover { color: white; transform: translateY(-1px); }
         .clay-btn:active {
-            box-shadow: 
-                inset 4px 4px 8px var(--shadow-dark), 
-                inset -4px -4px 8px var(--shadow-light);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
             transform: translateY(1px) scale(0.97);
         }
 
-        /* Colored Puffy Buttons */
+        /* Colored Buttons */
         .clay-btn-pink { background: var(--clay-pink); color: white; box-shadow: 5px 5px 15px rgba(236,72,153,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
         .clay-btn-pink:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
 
@@ -137,32 +126,23 @@
         .clay-btn-amber { background: var(--clay-amber); color: white; box-shadow: 5px 5px 15px rgba(245,158,11,0.25), -3px -3px 10px var(--shadow-light), inset 2px 2px 5px rgba(255,255,255,0.3), inset -3px -3px 6px rgba(0,0,0,0.2); transition: all 0.15s; cursor: pointer;}
         .clay-btn-amber:active { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.2); transform: translateY(1px) scale(0.97); }
 
-        /* Catalog Item Card */
+        /* Catalog Card */
         .clay-card {
             background: var(--panel-bg);
             border-radius: 16px;
-            box-shadow: 
-                4px 4px 10px var(--shadow-dark), 
-                -4px -4px 10px var(--shadow-light),
-                inset 1px 1px 2px rgba(255,255,255,0.05), 
-                inset -2px -2px 4px rgba(0,0,0,0.15);
+            box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light), inset 1px 1px 2px rgba(255,255,255,0.05), inset -2px -2px 4px rgba(0,0,0,0.15);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .clay-card:hover {
             transform: translateY(-2px);
-            box-shadow: 
-                6px 6px 14px var(--shadow-dark), 
-                -6px -6px 14px var(--shadow-light),
-                inset 1px 1px 3px rgba(255,255,255,0.08), 
-                inset -2px -2px 5px rgba(0,0,0,0.15);
+            box-shadow: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light), inset 1px 1px 3px rgba(255,255,255,0.08), inset -2px -2px 5px rgba(0,0,0,0.15);
         }
         .clay-card.active {
-            background: #393145; /* Slight tint */
+            background: #393145;
             box-shadow: inset 4px 4px 8px rgba(0,0,0,0.4), inset -3px -3px 6px rgba(255,255,255,0.04);
             transform: translateY(1px);
         }
 
-        /* Clay Text Input */
         .clay-input-text {
             background: var(--bg-color);
             border-radius: 8px;
@@ -173,7 +153,6 @@
             padding: 4px 8px;
         }
 
-        /* Custom Range Sliders */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
@@ -197,7 +176,6 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.4), inset -2px -2px 4px rgba(0,0,0,0.2);
         }
         
-        /* Thumb Colors dynamically assigned via classes or IDs in HTML */
         #slidePosX::-webkit-slider-thumb, #slideRotX::-webkit-slider-thumb { background: var(--clay-rose); }
         #slidePosY::-webkit-slider-thumb, #slideRotY::-webkit-slider-thumb { background: var(--clay-green); }
         #slidePosZ::-webkit-slider-thumb, #slideRotZ::-webkit-slider-thumb { background: var(--clay-cyan); }
@@ -211,61 +189,57 @@
 
 <body class="h-full w-full flex flex-col bg-clay-bg text-slate-100 overflow-hidden">
 
-    <!-- ENCABEZADO PRINCIPAL (HEADER) -->
-    <header id="mainHeader" class="clay-panel mx-4 mt-4 h-16 px-4 flex items-center justify-between z-30 shrink-0 gap-2">
-        <!-- Logo & Título -->
-        <div class="flex items-center gap-3 shrink-0">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-burnout-pink to-burnout-purple flex items-center justify-center shadow-lg shadow-burnout-pink/20" style="box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(255,255,255,0.3)">
-                <i class="fa-solid fa-car-burst text-white text-lg"></i>
+    <!-- ENCABEZADO PRINCIPAL -->
+    <header id="mainHeader" class="clay-panel mx-2 sm:mx-4 mt-2 sm:mt-4 h-14 sm:h-16 px-2 sm:px-4 flex items-center justify-between z-30 shrink-0 gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-2 shrink-0">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-burnout-pink to-burnout-purple flex items-center justify-center shadow-lg shadow-burnout-pink/20 shrink-0" style="box-shadow: 3px 3px 8px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(255,255,255,0.3)">
+                <i class="fa-solid fa-car-burst text-white text-base sm:text-lg"></i>
             </div>
-            <div class="flex items-center gap-2">
-                <h1 class="font-black italic tracking-wider text-sm sm:text-[15px] bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent uppercase drop-shadow-md whitespace-nowrap">BURNOUT STUDIO</h1>
-            </div>
+            <h1 class="font-black italic tracking-wider text-xs sm:text-sm bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent uppercase drop-shadow-md whitespace-nowrap hidden lg:inline">BURNOUT STUDIO 3D</h1>
         </div>
 
-        <!-- Selector de Modos Central (Sin scrollbars feas) -->
-        <div class="flex items-center clay-inset p-1.5 gap-1.5 overflow-x-auto no-scrollbar">
-            <button id="btnModeSelect" onclick="setEditorMode('select')" class="clay-btn-pink px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+        <!-- Selector de Modos Central -->
+        <div class="flex items-center clay-inset p-1 gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
+            <button id="btnModeSelect" onclick="setEditorMode('select')" title="Seleccionar" class="clay-btn-pink px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-arrow-pointer text-xs"></i>
-                <span class="hidden sm:inline">Seleccionar</span>
+                <span class="hidden lg:inline">Seleccionar</span>
             </button>
-            <button id="btnModeMove" onclick="setEditorMode('move')" class="clay-btn px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <button id="btnModeMove" onclick="setEditorMode('move')" title="Mover" class="clay-btn px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-up-down-left-right text-xs"></i>
-                <span class="hidden sm:inline">Mover</span>
+                <span class="hidden lg:inline">Mover</span>
             </button>
-            <button id="btnModeRotate" onclick="setEditorMode('rotate')" class="clay-btn px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <button id="btnModeRotate" onclick="setEditorMode('rotate')" title="Rotar" class="clay-btn px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-rotate text-xs"></i>
-                <span class="hidden sm:inline">Rotar</span>
+                <span class="hidden lg:inline">Rotar</span>
             </button>
             <div class="h-6 w-1 rounded-full bg-[#1e202e] mx-0.5 shrink-0 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.5)]"></div>
-            <button id="btnModeDrive" onclick="startTestDrive()" class="clay-btn-green px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <button id="btnModeDrive" onclick="startTestDrive()" title="Probar Pista" class="clay-btn-green px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-gamepad text-xs"></i>
-                <span>Probar</span>
+                <span class="hidden lg:inline">Probar Pista</span>
             </button>
         </div>
 
         <!-- Acciones de Archivo -->
-        <div class="flex items-center gap-2 shrink-0">
-            <button onclick="saveMapJson()" title="Guardar Mapa (JSON)" class="clay-btn w-9 h-9 flex items-center justify-center text-slate-300">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button onclick="saveMapJson()" title="Guardar Mapa (JSON)" class="clay-btn w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-300">
                 <i class="fa-solid fa-floppy-disk text-xs"></i>
             </button>
-            <label title="Cargar Mapa (JSON)" class="clay-btn w-9 h-9 flex items-center justify-center text-slate-300 m-0 cursor-pointer">
+            <label title="Cargar Mapa (JSON)" class="clay-btn w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-300 m-0 cursor-pointer">
                 <i class="fa-solid fa-folder-open text-xs"></i>
                 <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="loadMapJson(event)">
             </label>
-            <button onclick="exportLuauScript()" title="Exportar Script Luau para Roblox" class="clay-btn-purple px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 h-9">
+            <button onclick="exportLuauScript()" title="Exportar Script Luau para Roblox Studio" class="clay-btn-purple px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 h-8 sm:h-9">
                 <i class="fa-solid fa-code text-xs"></i>
-                <span class="hidden md:inline">Luau</span>
+                <span class="hidden xl:inline">Exportar Luau</span>
             </button>
         </div>
     </header>
 
     <!-- ÁREA DE TRABAJO PRINCIPAL -->
-    <div class="flex-1 flex relative overflow-hidden px-4 pb-4 gap-4 mt-4">
+    <div class="flex-1 flex relative overflow-hidden px-2 sm:px-4 pb-2 sm:pb-4 gap-2 sm:gap-4 mt-2 sm:mt-4">
 
         <!-- CATÁLOGO LATERAL IZQUIERDO -->
         <aside id="leftSidebar" class="sidebar-transition w-72 h-full clay-panel flex flex-col z-20 relative shrink-0 overflow-hidden">
-            <!-- Header de Catálogo -->
             <div class="p-4 flex items-center justify-between">
                 <div class="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-slate-200">
                     <div class="w-7 h-7 rounded-lg clay-inset flex items-center justify-center">
@@ -278,32 +252,28 @@
                 </button>
             </div>
 
-            <!-- Pestañas del Catálogo -->
             <div class="clay-inset p-1.5 mx-4 mb-2 flex text-xs font-bold">
                 <button id="tabRoads" onclick="switchCategory('roads')" class="clay-btn-pink flex-1 py-2 text-center rounded-xl transition">Vías</button>
                 <button id="tabBuildings" onclick="switchCategory('buildings')" class="clay-btn flex-1 py-2 text-center rounded-xl transition shadow-none bg-transparent">Ciudad</button>
                 <button id="tabProps" onclick="switchCategory('props')" class="clay-btn flex-1 py-2 text-center rounded-xl transition shadow-none bg-transparent">Props</button>
             </div>
 
-            <!-- Lista de Piezas -->
             <div id="catalogContainer" class="flex-1 overflow-y-auto px-4 py-2 space-y-3 pb-6">
-                <!-- Se llena dinámicamente con JS -->
+                <!-- Se poblará dinámicamente -->
             </div>
 
-            <!-- Tip Info -->
             <div class="p-4 clay-inset rounded-none rounded-b-[24px] text-[11px] text-slate-400 flex items-center gap-3">
                 <div class="w-6 h-6 rounded-full clay-panel flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-info text-burnout-cyan text-[10px]"></i>
                 </div>
-                <span class="leading-tight">Haz clic en una pieza para entrar en <strong>Modo Colocación (Estampar)</strong>.</span>
+                <span class="leading-tight">Haz clic en una pieza para entrar en <strong>Modo Estampar en Grilla</strong>.</span>
             </div>
         </aside>
 
-        <!-- CONTENEDOR VISOR 3D (CANVAS INSET) -->
-        <div id="canvasViewport" class="flex-1 h-full relative clay-inset overflow-hidden rounded-[32px]">
+        <!-- VISOR 3D -->
+        <div id="canvasViewport" class="flex-1 h-full relative clay-inset overflow-hidden rounded-[24px] sm:rounded-[32px]">
             <canvas id="threeCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing touch-none"></canvas>
 
-            <!-- BOTONES FLOTANTES DE RESTAURACIÓN DE PANELS -->
             <button id="btnRestoreLeft" onclick="toggleLeftSidebar()" title="Mostrar Catálogo" class="hidden absolute top-4 left-4 z-30 w-11 h-11 rounded-2xl clay-panel text-slate-300 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
                 <i class="fa-solid fa-boxes-stacked text-base text-burnout-pink"></i>
             </button>
@@ -312,16 +282,15 @@
                 <i class="fa-solid fa-sliders text-base text-burnout-purple"></i>
             </button>
 
-            <!-- HUD Estado Modo / Stamp Overlay -->
-            <div id="statusHud" class="absolute top-4 left-1/2 -translate-x-1/2 clay-panel px-6 py-2.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-4 pointer-events-none z-10">
-                <span class="flex items-center gap-2">
+            <!-- HUD Estado Modo -->
+            <div id="statusHud" class="absolute top-4 left-1/2 -translate-x-1/2 clay-panel px-4 sm:px-6 py-2.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 sm:gap-4 pointer-events-none z-10 max-w-[90vw] overflow-hidden">
+                <span class="flex items-center gap-2 whitespace-nowrap">
                     <span id="modeDot" class="w-2.5 h-2.5 rounded-full bg-burnout-pink animate-pulse shadow-[0_0_8px_#ec4899]"></span>
                     Modo: <strong id="modeStatusText" class="text-white uppercase font-bold tracking-wide">SELECCIÓN</strong>
                 </span>
-                <div class="w-1 h-4 rounded-full clay-inset"></div>
-                <span>Objetos: <strong id="objectCountText" class="text-burnout-cyan text-sm">0</strong></span>
+                <div class="w-1 h-4 rounded-full clay-inset shrink-0"></div>
+                <span class="whitespace-nowrap">Objetos: <strong id="objectCountText" class="text-burnout-cyan text-sm">0</strong></span>
                 
-                <!-- Badge Modo Colocación -->
                 <span id="placementHudBadge" class="hidden text-amber-300 font-bold bg-amber-900/40 px-3 py-1 rounded-xl pointer-events-auto cursor-pointer flex items-center gap-2 transition hover:bg-amber-800/50" onclick="cancelPlacement()">
                     <i class="fa-solid fa-stamp text-xs text-amber-400"></i>
                     <span id="placementItemNameText">Colocando...</span>
@@ -329,25 +298,25 @@
                 </span>
             </div>
 
-            <!-- Botones Flotantes de Cámara -->
+            <!-- Botones de Cámara -->
             <div id="cameraControlsHud" class="absolute bottom-4 left-4 z-10 flex items-center gap-2 clay-panel p-2 rounded-2xl">
                 <button onclick="resetCameraView('orbit')" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-arrows-spin text-sm text-burnout-cyan"></i>
-                    <span>Órbita</span>
+                    <span class="hidden sm:inline">Órbita</span>
                 </button>
                 <button onclick="resetCameraView('top')" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-map text-sm text-burnout-purple"></i>
-                    <span>Top-Down</span>
+                    <span class="hidden sm:inline">Top-Down</span>
                 </button>
                 <button onclick="focusSelectedObject()" class="clay-btn px-3 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-crosshairs text-sm text-burnout-pink"></i>
-                    <span>Enfocar</span>
+                    <span class="hidden sm:inline">Enfocar</span>
                 </button>
                 <div class="h-6 w-1 rounded-full clay-inset mx-1"></div>
-                <button onclick="changeZoom(-15)" title="Acercar (Zoom In)" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
+                <button onclick="changeZoom(-25)" title="Acercar" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
                     <i class="fa-solid fa-plus text-sm"></i>
                 </button>
-                <button onclick="changeZoom(15)" title="Alejar (Zoom Out)" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
+                <button onclick="changeZoom(25)" title="Alejar" class="clay-btn w-9 h-9 flex items-center justify-center rounded-xl text-amber-400">
                     <i class="fa-solid fa-minus text-sm"></i>
                 </button>
             </div>
@@ -355,7 +324,6 @@
 
         <!-- INSPECTOR LATERAL DERECHO -->
         <aside id="rightSidebar" class="sidebar-transition w-80 h-full clay-panel flex flex-col z-20 relative shrink-0 overflow-hidden">
-            <!-- Header Inspector -->
             <div class="p-4 flex items-center justify-between">
                 <button onclick="toggleRightSidebar()" title="Ocultar Inspector" class="clay-btn w-8 h-8 flex items-center justify-center text-slate-400">
                     <i class="fa-solid fa-chevron-right text-xs"></i>
@@ -368,21 +336,17 @@
                 </div>
             </div>
 
-            <!-- Contenido del Inspector -->
             <div id="inspectorContent" class="flex-1 overflow-y-auto px-4 py-2 space-y-5 pb-6">
-                
-                <!-- Estado Sin Selección -->
+                <!-- Sin Selección -->
                 <div id="noSelectionState" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
                     <div class="w-20 h-20 rounded-3xl clay-inset flex items-center justify-center mb-4">
                         <i class="fa-solid fa-arrow-pointer text-3xl text-slate-600 drop-shadow-md"></i>
                     </div>
-                    <p class="text-xs font-medium leading-relaxed">Selecciona un objeto en la escena 3D o coloca uno nuevo para modificar sus propiedades.</p>
+                    <p class="text-xs font-medium leading-relaxed">Selecciona una pieza en la escena 3D o coloca una nueva para modificar sus propiedades.</p>
                 </div>
 
-                <!-- Estado Con Selección -->
+                <!-- Con Selección -->
                 <div id="activeSelectionState" class="hidden space-y-5">
-                    
-                    <!-- Tarjeta Objeto Seleccionado -->
                     <div class="p-4 rounded-2xl clay-inset flex items-center justify-between">
                         <div>
                             <span id="inspectorCategoryText" class="text-[10px] font-mono text-burnout-pink font-bold uppercase tracking-wider">ROADS</span>
@@ -404,8 +368,6 @@
                             <span>Posición (Studs)</span>
                             <span class="text-[10px] font-mono px-2 py-0.5 rounded-md clay-inset text-slate-400">Vector3</span>
                         </div>
-
-                        <!-- X -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-rose-400 font-bold">X</span>
@@ -413,8 +375,6 @@
                             </div>
                             <input type="range" id="slidePosX" min="-250" max="250" step="1" oninput="updateObjectTransformFromSliders()">
                         </div>
-
-                        <!-- Y -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-emerald-400 font-bold">Y (Altura)</span>
@@ -422,8 +382,6 @@
                             </div>
                             <input type="range" id="slidePosY" min="0" max="150" step="0.5" oninput="updateObjectTransformFromSliders()">
                         </div>
-
-                        <!-- Z -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-cyan-400 font-bold">Z</span>
@@ -439,8 +397,6 @@
                             <span>Rotación 3D (Grados)</span>
                             <span class="text-[10px] font-mono px-2 py-0.5 rounded-md clay-inset text-burnout-purple">Gizmo</span>
                         </div>
-
-                        <!-- Pitch X -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-rose-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_5px_#fb7185]"></div> Pitch (X)</span>
@@ -448,8 +404,6 @@
                             </div>
                             <input type="range" id="slideRotX" min="0" max="360" step="15" oninput="updateObjectTransformFromSliders()">
                         </div>
-
-                        <!-- Yaw Y -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-emerald-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399]"></div> Yaw (Y - Giro)</span>
@@ -457,8 +411,6 @@
                             </div>
                             <input type="range" id="slideRotY" min="0" max="360" step="15" oninput="updateObjectTransformFromSliders()">
                         </div>
-
-                        <!-- Roll Z -->
                         <div class="space-y-1">
                             <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                 <span class="text-cyan-400 font-bold flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_5px_#22d3ee]"></div> Roll (Z)</span>
@@ -474,9 +426,7 @@
                             <span class="text-xs font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-hammer"></i> Perforar Túnel</span>
                             <input type="checkbox" id="chkEnableHole" onchange="toggleBuildingHole()" class="w-4 h-4 rounded cursor-pointer pointer-events-none" style="accent-color: #f59e0b;">
                         </div>
-
                         <div id="holeControlsContainer" class="hidden space-y-3 pt-1">
-                            <!-- Ancho -->
                             <div class="space-y-1">
                                 <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                     <span class="text-slate-300">Ancho Túnel</span>
@@ -484,8 +434,6 @@
                                 </div>
                                 <input type="range" id="slideHoleW" min="10" max="60" step="2" oninput="updateBuildingHoleProps()">
                             </div>
-
-                            <!-- Alto -->
                             <div class="space-y-1">
                                 <div class="flex justify-between items-center text-[11px] font-mono px-1">
                                     <span class="text-slate-300">Alto Túnel</span>
@@ -500,11 +448,9 @@
         </aside>
     </div>
 
-    <!-- HUD PRUEBA DE CONDUCCIÓN (TEST DRIVE OVERLAY) -->
+    <!-- HUD PRUEBA DE CONDUCCIÓN -->
     <div id="testDriveHud" class="hidden absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-6">
-        
         <div class="flex items-start justify-between w-full pointer-events-none">
-            <!-- Velocímetro Flotante -->
             <div class="clay-panel px-6 py-4 rounded-3xl text-center pointer-events-auto">
                 <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Velocidad</div>
                 <div class="text-4xl font-black font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
@@ -513,17 +459,13 @@
                 <div class="text-[9px] font-mono text-slate-500 mt-2">WASD/Flechas | Espacio: Nitro</div>
             </div>
 
-            <!-- Botón Salir -->
             <button onclick="stopTestDrive()" class="pointer-events-auto clay-btn-rose px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>Salir</span>
             </button>
         </div>
 
-        <!-- Controles Inferiores (Volante, Pedales y Nitro) -->
         <div class="flex items-end justify-between w-full pointer-events-none relative">
-            
-            <!-- Dirección (Izquierda) -->
             <div class="pointer-events-auto flex gap-4">
                 <button ontouchstart="touchDriveControls.left = true" ontouchend="touchDriveControls.left = false" onmousedown="touchDriveControls.left = true" onmouseup="touchDriveControls.left = false" onmouseleave="touchDriveControls.left = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-burnout-pink">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -533,19 +475,16 @@
                 </button>
             </div>
 
-            <!-- Botón Nitro Central-Derecha -->
             <div class="pointer-events-auto absolute bottom-24 right-4 flex flex-col items-center gap-3">
                 <button ontouchstart="touchDriveControls.nitro = true" ontouchend="touchDriveControls.nitro = false" onmousedown="touchDriveControls.nitro = true" onmouseup="touchDriveControls.nitro = false" onmouseleave="touchDriveControls.nitro = false" class="clay-btn-amber w-24 h-24 rounded-full flex flex-col items-center justify-center text-white transition">
                     <i class="fa-solid fa-bolt text-3xl mb-1"></i>
                     <span class="text-[10px] font-black tracking-widest">BOOST</span>
                 </button>
-                <!-- Medidor Nitro -->
                 <div class="w-32 h-4 clay-inset rounded-full overflow-hidden p-0.5">
                     <div id="hudNitroBar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full w-full transition-all duration-75 shadow-[0_0_10px_#f59e0b]"></div>
                 </div>
             </div>
 
-            <!-- Pedales Aceleración / Freno (Derecha) -->
             <div class="pointer-events-auto flex gap-4">
                 <button ontouchstart="touchDriveControls.backward = true" ontouchend="touchDriveControls.backward = false" onmousedown="touchDriveControls.backward = true" onmouseup="touchDriveControls.backward = false" onmouseleave="touchDriveControls.backward = false" class="clay-btn w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl active:text-rose-500">
                     <i class="fa-solid fa-backward-step"></i>
@@ -560,7 +499,6 @@
     <!-- TOAST CONTAINER -->
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- SCRIPT PRINCIPAL DE LA APLICACIÓN -->
     <script>
         // ==========================================
         // VARIABLES GLOBALES Y ESTADO
@@ -582,17 +520,20 @@
         let gizmoStartMouse = { x: 0, y: 0 };
         let gizmoStartRotation = { x: 0, y: 0, z: 0 };
 
-        // 3D Mouse Dragging
+        // Dragging & Camera Orbit
         let isDragging3D = false;
         let dragPlane = new THREE.Plane();
         let dragOffset = new THREE.Vector3();
         let planeIntersection = new THREE.Vector3();
-
-        // Camera Orbit
         let isOrbiting = false;
         let previousMousePosition = { x: 0, y: 0 };
         let cameraRadius = 120, cameraTheta = Math.PI / 4, cameraPhi = Math.PI / 3;
         let cameraTarget = new THREE.Vector3(0, 0, 0);
+
+        // Mobile Touch Gesture Navigation
+        let touchStartPos = { x: 0, y: 0 };
+        let touchLastPos = { x: 0, y: 0 };
+        let touchIsMoved = false;
         let initialPinchDistance = null;
 
         // Test Drive State
@@ -605,46 +546,47 @@
         let clock = new THREE.Clock();
 
         // ==========================================
-        // CATÁLOGO COMPLETO DE OBJETOS
+        // CATÁLOGO COMPLETO (PISTAS, CIUDAD Y CAMPUS)
         // ==========================================
         const ITEM_DEFINITIONS = [
-            // VÍAS (ROADS)
+            // VÍAS Y PISTAS (ROADS & TRACKS)
             { id: 'road_straight', name: 'Recta Ancha (4 Carriles)', category: 'roads', size: [40, 1, 60], color: 0x3f4559 },
-            { id: 'road_avenue', name: 'Avenida Principal', category: 'roads', size: [28, 1, 78], color: 0x3f4559 },
-            { id: 'road_local', name: 'Calle Local / Acceso', category: 'roads', size: [18, 1, 58], color: 0x485166 },
+            { id: 'road_avenue', name: 'Avenida Principal', category: 'roads', size: [32, 1, 80], color: 0x3f4559 },
+            { id: 'road_local', name: 'Calle Secundaria / Acceso', category: 'roads', size: [20, 1, 50], color: 0x485166 },
             { id: 'road_curve', name: 'Curva de Derrape 90°', category: 'roads', size: [60, 1, 60], color: 0x3f4559 },
             { id: 'road_cross', name: 'Cruce de 4 Vías', category: 'roads', size: [60, 1, 60], color: 0x3f4559 },
-            { id: 'road_ramp', name: 'Rampa de Salto / Acrobacia', category: 'roads', size: [30, 15, 60], color: 0x4d5570 },
-            { id: 'road_ramp_viaduct', name: 'Rampa Subida a Viaducto', category: 'roads', size: [40, 20, 80], color: 0x4d5570 },
-            { id: 'road_viaduct', name: 'Viaducto Elevado', category: 'roads', size: [40, 20, 80], color: 0x3f4559 },
-            { id: 'road_roundabout', name: 'Rotonda / Distribuidor', category: 'roads', size: [76, 1, 76], color: 0x3f4559 },
+            { id: 'road_ramp', name: 'Rampa de Salto Acrobático', category: 'roads', size: [30, 15, 60], color: 0x4d5570 },
+            { id: 'road_ramp_viaduct', name: 'Rampa Elevada a Autopista', category: 'roads', size: [40, 20, 80], color: 0x4d5570 },
+            { id: 'road_viaduct', name: 'Autopista Elevada (Viaducto)', category: 'roads', size: [40, 20, 80], color: 0x3f4559 },
+            { id: 'road_roundabout', name: 'Rotonda / Distribuidor Urbano', category: 'roads', size: [80, 1, 80], color: 0x3f4559 },
 
-            // CIUDAD (BUILDINGS)
+            // CIUDAD Y CAMPUS (BUILDINGS & STRUCTURES)
             { id: 'bld_skyscraper', name: 'Rascacielos Vidriado', category: 'buildings', size: [50, 120, 50], color: 0x222436 },
-            { id: 'bld_glass_office', name: 'Edificio Vidriado Bajo', category: 'buildings', size: [52, 28, 36], color: 0x718096 },
+            { id: 'bld_glass_office', name: 'Torre Corporativa Vidriada', category: 'buildings', size: [52, 45, 36], color: 0x718096 },
             { id: 'bld_cyan_block', name: 'Bloque Celeste', category: 'buildings', size: [48, 16, 36], color: 0x06b6d4 },
-            { id: 'bld_tunnel', name: 'Edificio con Túnel', category: 'buildings', size: [60, 70, 40], color: 0x1a1c29 },
+            { id: 'bld_tunnel', name: 'Edificio con Túnel de Conducción', category: 'buildings', size: [60, 70, 40], color: 0x1a1c29 },
             { id: 'bld_mall', name: 'Centro Comercial (Mall)', category: 'buildings', size: [100, 40, 120], color: 0x1e1c3a },
-            { id: 'bld_block', name: 'Manzana de Cuadra Urbana', category: 'buildings', size: [80, 50, 80], color: 0x191a26 },
+            { id: 'bld_block', name: 'Manzana Urbana Completa', category: 'buildings', size: [80, 50, 80], color: 0x191a26 },
+            { id: 'bld_industrial', name: 'Nave Industrial / Pits', category: 'buildings', size: [70, 25, 90], color: 0x475569 },
+            { id: 'bld_parking_garage', name: 'Estacionamiento Multinivel', category: 'buildings', size: [60, 35, 60], color: 0x334155 },
             { id: 'bld_pavilion_long', name: 'Pabellón Largo', category: 'buildings', size: [42, 13, 13], color: 0x8794a3 },
             { id: 'bld_pavilion_wing', name: 'Ala de Pabellón', category: 'buildings', size: [29, 13, 14], color: 0x8794a3 },
             { id: 'bld_pavilion_tall', name: 'Pabellón Vertical', category: 'buildings', size: [14, 14, 38], color: 0x8794a3 },
-            { id: 'bld_classroom', name: 'Aula / Anexo', category: 'buildings', size: [28, 10, 15], color: 0x9aa7b5 },
+            { id: 'bld_classroom', name: 'Aula / Anexo Académico', category: 'buildings', size: [28, 10, 15], color: 0x9aa7b5 },
             { id: 'bld_service', name: 'Pabellón Auxiliar', category: 'buildings', size: [34, 13, 25], color: 0x5b677a },
             { id: 'bld_campus', name: 'Edificio Académico Articulado', category: 'buildings', size: [120, 32, 96], color: 0x8794a3 },
-            { id: 'bld_red_roof', name: 'Edificio Techo Rojo', category: 'buildings', size: [20, 12, 35], color: 0x993333 },
 
-            // PROPS LOW-POLY
-            { id: 'prop_tree_oak', name: 'Árbol Roble Low-Poly', category: 'props', size: [10, 18, 10], color: 0x10b981 },
-            { id: 'prop_tree_pine', name: 'Árbol Pino Low-Poly', category: 'props', size: [10, 22, 10], color: 0x059669 },
+            // PROPS Y ELEMENTOS (PROPS & HAZARDS)
+            { id: 'prop_nitro', name: 'Pickup Nitro Boost (Recarga)', category: 'props', size: [6, 6, 6], color: 0xf59e0b },
+            { id: 'prop_gas_station', name: 'Estación de Servicio / Pits', category: 'props', size: [50, 16, 40], color: 0x06b6d4 },
             { id: 'prop_traffic_light', name: 'Semáforo Urbano', category: 'props', size: [4, 14, 4], color: 0xf59e0b },
-            { id: 'prop_trash_can', name: 'Tacho de Basura Low-Poly', category: 'props', size: [4, 5, 4], color: 0x64748b },
-            { id: 'prop_neon_pole', name: 'Poste Neón de Luz', category: 'props', size: [3, 16, 3], color: 0xec4899 },
-            { id: 'prop_gas_station', name: 'Estación de Gasolina / Pits', category: 'props', size: [50, 16, 40], color: 0x06b6d4 },
-            { id: 'prop_green_space', name: 'Parque / Campo de Campus', category: 'props', size: [176, 1, 142], color: 0x3f7d52 },
-            { id: 'prop_parking', name: 'Estacionamiento Urbano', category: 'props', size: [72, 1, 48], color: 0x303646 },
-            { id: 'prop_walkway', name: 'Pasarela de Campus', category: 'props', size: [60, 12, 8], color: 0x64748b },
-            { id: 'prop_nitro', name: 'Nitro Pickup (Recarga)', category: 'props', size: [6, 6, 6], color: 0xf59e0b }
+            { id: 'prop_neon_pole', name: 'Luminaria Neón de Autopista', category: 'props', size: [3, 18, 3], color: 0xec4899 },
+            { id: 'prop_crash_barrier', name: 'Barrera de Impacto K-Rail', category: 'props', size: [20, 4, 3], color: 0xe2e8f0 },
+            { id: 'prop_parking', name: 'Zona de Pits / Estacionamiento', category: 'props', size: [72, 1, 48], color: 0x303646 },
+            { id: 'prop_green_space', name: 'Parque / Campo de Pasto', category: 'props', size: [176, 1, 142], color: 0x3f7d52 },
+            { id: 'prop_walkway', name: 'Pasarela Elevada / Peatonal', category: 'props', size: [60, 12, 8], color: 0x64748b },
+            { id: 'prop_tree_oak', name: 'Árbol Roble Low-Poly', category: 'props', size: [10, 18, 10], color: 0x10b981 },
+            { id: 'prop_tree_pine', name: 'Pino Low-Poly', category: 'props', size: [10, 22, 10], color: 0x059669 }
         ];
 
         // ==========================================
@@ -673,7 +615,7 @@
             if (mode !== 'select') {
                 cancelPlacement();
             }
-            const baseClass = 'px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0';
+            const baseClass = 'px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0';
             document.getElementById('btnModeSelect').className = `${baseClass} ${mode === 'select' ? 'clay-btn-pink' : 'clay-btn'}`;
             document.getElementById('btnModeMove').className = `${baseClass} ${mode === 'move' ? 'clay-btn-cyan' : 'clay-btn'}`;
             document.getElementById('btnModeRotate').className = `${baseClass} ${mode === 'rotate' ? 'clay-btn-purple' : 'clay-btn'}`;
@@ -708,9 +650,9 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x262938);
-            scene.fog = new THREE.FogExp2(0x262938, 0.0015);
+            scene.fog = new THREE.FogExp2(0x262938, 0.0008);
 
-            camera = new THREE.PerspectiveCamera(55, viewport.clientWidth / viewport.clientHeight, 0.5, 1500);
+            camera = new THREE.PerspectiveCamera(55, viewport.clientWidth / viewport.clientHeight, 0.5, 3000);
             updateCameraPosition();
 
             renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
@@ -731,24 +673,20 @@
             sunLight.shadow.mapSize.width = 2048;
             sunLight.shadow.mapSize.height = 2048;
             sunLight.shadow.camera.near = 0.5;
-            sunLight.shadow.camera.far = 600;
-            const d = 200;
+            sunLight.shadow.camera.far = 1200;
+            const d = 400;
             sunLight.shadow.camera.left = -d;
             sunLight.shadow.camera.right = d;
             sunLight.shadow.camera.top = d;
             sunLight.shadow.camera.bottom = -d;
             sunLight.shadow.bias = -0.0005;
             scene.add(sunLight);
-            
-            const fillLight = new THREE.DirectionalLight(0xabcdef, 0.4);
-            fillLight.position.set(-100, 100, -100);
-            scene.add(fillLight);
 
-            groundGrid = new THREE.GridHelper(600, 120, 0xec4899, 0x3b4054);
+            groundGrid = new THREE.GridHelper(1000, 200, 0xec4899, 0x3b4054);
             groundGrid.position.y = 0;
             scene.add(groundGrid);
 
-            const planeGeo = new THREE.PlaneGeometry(2000, 2000);
+            const planeGeo = new THREE.PlaneGeometry(4000, 4000);
             planeGeo.rotateX(-Math.PI / 2);
             groundPlane = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ visible: false }));
             scene.add(groundPlane);
@@ -797,14 +735,14 @@
                 group.add(stripe);
 
             } else if (itemDef.id === 'road_curve') {
+                // Fixed 90-degree curve geometry without self-intersecting polygon artifact
                 const shape = new THREE.Shape();
                 const radius = w;
                 shape.absarc(0, 0, radius, 0, Math.PI / 2, false);
-                shape.lineTo(radius - 12, 0);
                 shape.absarc(0, 0, radius - 12, Math.PI / 2, 0, true);
                 shape.closePath();
 
-                const extrudeSettings = { depth: h, bevelEnabled: false, curveSegments: 24 };
+                const extrudeSettings = { depth: h, bevelEnabled: false, curveSegments: 32 };
                 const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                 geo.rotateX(Math.PI / 2);
                 geo.center();
@@ -812,14 +750,14 @@
                 const curveMesh = new THREE.Mesh(geo, material);
                 curveMesh.receiveShadow = true;
                 group.add(curveMesh);
-                
+
                 const arcShape = new THREE.Shape();
                 arcShape.absarc(0, 0, radius - 6, 0.05, Math.PI / 2 - 0.05, false);
-                const arcGeo = new THREE.ShapeGeometry(arcShape, 12);
+                const arcGeo = new THREE.ShapeGeometry(arcShape, 20);
                 const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
                 const arcMesh = new THREE.Mesh(arcGeo, stripeMat);
                 arcMesh.rotation.x = Math.PI / 2;
-                arcMesh.position.set(-w/2, h/2 + 0.05, -l/2);
+                arcMesh.position.set(-w / 2, h / 2 + 0.05, -l / 2);
                 group.add(arcMesh);
 
             } else if (itemDef.id === 'road_ramp' || itemDef.id === 'road_ramp_viaduct') {
@@ -831,12 +769,7 @@
 
                 const extrudeSettings = { depth: w, bevelEnabled: false };
                 const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                
-                if (itemDef.id === 'road_ramp_viaduct') {
-                    geo.rotateY(Math.PI / 2); 
-                } else {
-                    geo.rotateY(-Math.PI / 2);
-                }
+                geo.rotateY(itemDef.id === 'road_ramp_viaduct' ? Math.PI / 2 : -Math.PI / 2);
                 geo.center();
 
                 const rampMesh = new THREE.Mesh(geo, material);
@@ -849,12 +782,7 @@
                 const stripeGeo = new THREE.BoxGeometry(1, 0.1, diagLen * 0.95);
                 const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
                 const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                
-                if (itemDef.id === 'road_ramp_viaduct') {
-                    stripe.rotation.x = rampSlopeAngle;
-                } else {
-                    stripe.rotation.x = -rampSlopeAngle;
-                }
+                stripe.rotation.x = -rampSlopeAngle;
                 stripe.position.set(0, 0.1, 0);
                 group.add(stripe);
 
@@ -866,15 +794,8 @@
                 roadMesh.receiveShadow = true;
                 group.add(roadMesh);
 
-                const stripeGeo = new THREE.BoxGeometry(1, 0.1, l * 0.9);
-                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                stripe.position.y = h / 2 + 0.05;
-                group.add(stripe);
-
                 const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
                 const pillarGeo = new THREE.CylinderGeometry(1.8, 1.8, h - 2, 12);
-                
                 [-w / 3, w / 3].forEach(px => {
                     [-l / 3, l / 3].forEach(pz => {
                         const pillar = new THREE.Mesh(pillarGeo, pillarMat);
@@ -894,7 +815,7 @@
                 roadRing.receiveShadow = true;
                 group.add(roadRing);
 
-                const islandMat = new THREE.MeshStandardMaterial({ color: 0x355c3d, roughness: 0.95 });
+                const islandMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.95 });
                 const island = new THREE.Mesh(new THREE.CylinderGeometry(innerRadius - 2, innerRadius - 2, 1.2, 48), islandMat);
                 island.position.y = h / 2 + 0.55;
                 island.receiveShadow = true;
@@ -910,71 +831,78 @@
                     group.add(dash);
                 }
 
-            } else if (itemDef.id === 'bld_glass_office') {
-                const bodyMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.82 });
-                const glassMat = new THREE.MeshStandardMaterial({ color: 0x155e75, roughness: 0.25, metalness: 0.25, emissive: 0x083344, emissiveIntensity: 0.22 });
-                const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), bodyMat);
-                body.castShadow = true;
-                body.receiveShadow = true;
-                group.add(body);
-                const glass = new THREE.Mesh(new THREE.BoxGeometry(w * 0.74, h * 0.46, 0.65), glassMat);
-                glass.position.set(0, 0, l / 2 + 0.36);
-                group.add(glass);
-
-            } else if (itemDef.id === 'bld_campus') {
-                const concrete = new THREE.MeshStandardMaterial({ color: 0x8794a3, roughness: 0.88 });
-                const facade = new THREE.MeshStandardMaterial({ color: 0x5e89a0, roughness: 0.42, metalness: 0.08 });
-                const roof = new THREE.MeshStandardMaterial({ color: 0xc6d0d5, roughness: 0.92 });
-                const addBox = (width, height, length, x, y, z, mat, rotY = 0) => {
-                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, length), mat);
-                    mesh.position.set(x, y, z);
-                    mesh.rotation.y = rotY;
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
-                    group.add(mesh);
-                };
-
-                addBox(w * 0.26, h * 0.38, l * 0.15, -w * 0.27, -h * 0.31, -l * 0.33, concrete, 0.10);
-                addBox(w * 0.29, h * 0.38, l * 0.15, 0, -h * 0.31, -l * 0.27, concrete, 0.02);
-                addBox(w * 0.20, h * 0.38, l * 0.15, w * 0.28, -h * 0.31, -l * 0.19, concrete, -0.42);
-                addBox(w * 0.15, h * 0.42, l * 0.43, w * 0.33, -h * 0.29, l * 0.12, concrete, -0.18);
-                addBox(w * 0.18, h * 0.36, l * 0.18, w * 0.21, -h * 0.32, l * 0.36, concrete, 0.52);
-                addBox(w * 0.31, h * 0.30, l * 0.13, -w * 0.08, -h * 0.35, l * 0.06, facade, 0);
-                addBox(w * 0.19, h * 0.26, l * 0.16, -w * 0.24, -h * 0.37, l * 0.31, roof, -0.08);
-
-            } else if (itemDef.category === 'buildings') {
-                buildBuildingGeometry(group, itemDef, extraProps);
-
             } else if (itemDef.id === 'prop_tree_oak') {
-                const trunkGeo = new THREE.CylinderGeometry(0.8, 1.2, 6, 5);
-                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, flatShading: true });
+                // Fixed Tree Geometry: Trunk and overlapping foliage
+                const trunkGeo = new THREE.CylinderGeometry(0.8, 1.4, 7, 8);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9, flatShading: true });
                 const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-                trunk.position.y = -h / 2 + 3;
+                trunk.position.y = -h / 2 + 3.5;
                 trunk.castShadow = true;
                 group.add(trunk);
 
-                const leavesGeo = new THREE.DodecahedronGeometry(5, 0);
-                const leavesMat = new THREE.MeshStandardMaterial({ color: itemDef.color, flatShading: true });
-                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-                leaves.position.y = h / 2 - 3;
-                leaves.castShadow = true;
-                group.add(leaves);
+                const leavesMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.8, flatShading: true });
+                const leavesGeo1 = new THREE.DodecahedronGeometry(5.5, 1);
+                const leaves1 = new THREE.Mesh(leavesGeo1, leavesMat);
+                leaves1.position.y = -h / 2 + 9.5;
+                leaves1.castShadow = true;
+                group.add(leaves1);
+
+                const leavesGeo2 = new THREE.DodecahedronGeometry(4, 0);
+                const leaves2 = new THREE.Mesh(leavesGeo2, leavesMat);
+                leaves2.position.y = -h / 2 + 13.5;
+                leaves2.castShadow = true;
+                group.add(leaves2);
 
             } else if (itemDef.id === 'prop_tree_pine') {
-                const trunkGeo = new THREE.CylinderGeometry(0.6, 1, 5, 5);
-                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, flatShading: true });
+                const trunkGeo = new THREE.CylinderGeometry(0.6, 1.2, 8, 8);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9, flatShading: true });
                 const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-                trunk.position.y = -h / 2 + 2.5;
+                trunk.position.y = -h / 2 + 4;
                 trunk.castShadow = true;
                 group.add(trunk);
 
-                [8, 6, 4].forEach((coneRadius, idx) => {
-                    const coneGeo = new THREE.ConeGeometry(coneRadius, 7, 5);
-                    const coneMat = new THREE.MeshStandardMaterial({ color: itemDef.color, flatShading: true });
-                    const cone = new THREE.Mesh(coneGeo, coneMat);
-                    cone.position.y = -h / 2 + 6 + (idx * 4.5);
+                const pineMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.8, flatShading: true });
+                [
+                    { r: 7, hC: 8, yOffset: 7 },
+                    { r: 5.5, hC: 7, yOffset: 11 },
+                    { r: 4, hC: 6, yOffset: 15 }
+                ].forEach(layer => {
+                    const coneGeo = new THREE.ConeGeometry(layer.r, layer.hC, 7);
+                    const cone = new THREE.Mesh(coneGeo, pineMat);
+                    cone.position.y = -h / 2 + layer.yOffset;
                     cone.castShadow = true;
                     group.add(cone);
+                });
+
+            } else if (itemDef.id === 'prop_green_space') {
+                const lawnGeo = new THREE.BoxGeometry(w, h, l);
+                const lawnMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.95 });
+                const lawn = new THREE.Mesh(lawnGeo, lawnMat);
+                lawn.receiveShadow = true;
+                group.add(lawn);
+
+                const pathMat = new THREE.MeshBasicMaterial({ color: 0x8a9a8a });
+                const pathNS = new THREE.Mesh(new THREE.BoxGeometry(4, 0.1, l * 0.9), pathMat);
+                pathNS.position.y = h / 2 + 0.06;
+                group.add(pathNS);
+
+                const pathEW = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, 0.1, 4), pathMat);
+                pathEW.position.y = h / 2 + 0.06;
+                group.add(pathEW);
+
+            } else if (itemDef.id === 'prop_walkway') {
+                const deckMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.75 });
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 1.4, l), deckMat);
+                deck.position.y = h / 2 - 1.2;
+                deck.castShadow = true;
+                deck.receiveShadow = true;
+                group.add(deck);
+
+                const railMat = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+                [-l / 2 + 0.45, l / 2 - 0.45].forEach(z => {
+                    const rail = new THREE.Mesh(new THREE.BoxGeometry(w, 1.1, 0.18), railMat);
+                    rail.position.set(0, h / 2, z);
+                    group.add(rail);
                 });
 
             } else if (itemDef.id === 'prop_nitro') {
@@ -984,34 +912,13 @@
                 group.add(nitroMesh);
 
                 const ringGeo = new THREE.TorusGeometry(3.5, 0.2, 4, 16);
-                const ringMat = new THREE.MeshBasicMaterial({color: 0xf59e0b});
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-                ringMesh.rotation.x = Math.PI/2;
+                ringMesh.rotation.x = Math.PI / 2;
                 group.add(ringMesh);
 
-            } else if (itemDef.id === 'prop_parking') {
-                const lot = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), material);
-                lot.receiveShadow = true;
-                group.add(lot);
-                const lineMat = new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.78 });
-                for (let x = -w / 2 + 7; x < w / 2 - 2; x += 9) {
-                    const space = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, l * 0.78), lineMat);
-                    space.position.set(x, h / 2 + 0.06, 0);
-                    group.add(space);
-                }
-
-            } else if (itemDef.id === 'prop_green_space') {
-                const lawn = new THREE.Mesh(new THREE.BoxGeometry(w, h, l), new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 1 }));
-                lawn.receiveShadow = true;
-                group.add(lawn);
-
-            } else if (itemDef.id === 'prop_walkway') {
-                const deckMat = new THREE.MeshStandardMaterial({ color: itemDef.color, roughness: 0.75 });
-                const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 1.4, l), deckMat);
-                deck.position.y = h / 2 - 1.2;
-                deck.castShadow = true;
-                deck.receiveShadow = true;
-                group.add(deck);
+            } else if (itemDef.category === 'buildings') {
+                buildBuildingGeometry(group, itemDef, extraProps);
 
             } else {
                 const geo = new THREE.BoxGeometry(w, h, l);
@@ -1034,7 +941,7 @@
         }
 
         function buildBuildingGeometry(group, itemDef, extraProps = {}) {
-            while(group.children.length > 0) { 
+            while (group.children.length > 0) { 
                 group.remove(group.children[0]); 
             }
 
@@ -1054,32 +961,23 @@
                 const topH = h - holeH;
 
                 if (sideW > 0) {
-                    const leftGeo = new THREE.BoxGeometry(sideW, h, l);
-                    const leftMesh = new THREE.Mesh(leftGeo, material);
+                    const leftMesh = new THREE.Mesh(new THREE.BoxGeometry(sideW, h, l), material);
                     leftMesh.position.set(-w / 2 + sideW / 2, 0, 0);
                     leftMesh.castShadow = true; leftMesh.receiveShadow = true;
                     group.add(leftMesh);
 
-                    const rightGeo = new THREE.BoxGeometry(sideW, h, l);
-                    const rightMesh = new THREE.Mesh(rightGeo, material);
+                    const rightMesh = new THREE.Mesh(new THREE.BoxGeometry(sideW, h, l), material);
                     rightMesh.position.set(w / 2 - sideW / 2, 0, 0);
                     rightMesh.castShadow = true; rightMesh.receiveShadow = true;
                     group.add(rightMesh);
                 }
 
                 if (topH > 0) {
-                    const topGeo = new THREE.BoxGeometry(holeW, topH, l);
-                    const topMesh = new THREE.Mesh(topGeo, material);
+                    const topMesh = new THREE.Mesh(new THREE.BoxGeometry(holeW, topH, l), material);
                     topMesh.position.set(0, h / 2 - topH / 2, 0);
                     topMesh.castShadow = true; topMesh.receiveShadow = true;
                     group.add(topMesh);
                 }
-
-                const frameMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
-                const frameGeo = new THREE.BoxGeometry(holeW + 1, 1, l + 0.5);
-                const frameTop = new THREE.Mesh(frameGeo, frameMat);
-                frameTop.position.set(0, -h / 2 + holeH, 0);
-                group.add(frameTop);
 
             } else {
                 const geo = new THREE.BoxGeometry(w, h, l);
@@ -1090,9 +988,6 @@
             }
         }
 
-        // ==========================================
-        // GIZMO DE ROTACIÓN 3D
-        // ==========================================
         function createRotationGizmoGroup() {
             rotationGizmoGroup = new THREE.Group();
 
@@ -1130,9 +1025,6 @@
             }
         }
 
-        // ==========================================
-        // MODO COLOCACIÓN / STAMP (GHOST PREVIEW)
-        // ==========================================
         function switchCategory(cat) {
             currentCategory = cat;
             ['Roads', 'Buildings', 'Props'].forEach(c => {
@@ -1202,7 +1094,7 @@
 
             document.getElementById('placementHudBadge').classList.remove('hidden');
             document.getElementById('placementItemNameText').innerText = `Colocando: ${itemDef.name}`;
-            showToast(`Haz click en la grilla para estampar '${itemDef.name}'. ESC para salir.`, "info");
+            showToast(`Haz click en la grilla para estampar '${itemDef.name}'.`, "info");
             
             renderCatalogItems();
         }
@@ -1220,9 +1112,6 @@
             renderCatalogItems();
         }
 
-        // ==========================================
-        // MANEJO DE SIDEBARS COLAPSABLES
-        // ==========================================
         function toggleLeftSidebar() {
             const sidebar = document.getElementById('leftSidebar');
             const btnRestore = document.getElementById('btnRestoreLeft');
@@ -1237,7 +1126,6 @@
                 btnRestore.classList.remove('hidden');
             }
             forceResizeCanvas();
-            setTimeout(forceResizeCanvas, 50);
         }
 
         function toggleRightSidebar() {
@@ -1254,12 +1142,8 @@
                 btnRestore.classList.remove('hidden');
             }
             forceResizeCanvas();
-            setTimeout(forceResizeCanvas, 50);
         }
 
-        // ==========================================
-        // SINCRONIZACIÓN DEL INSPECTOR
-        // ==========================================
         function selectObject(obj) {
             if (activePlacementItem) return;
             deselectObject();
@@ -1285,7 +1169,7 @@
             sceneObjects = sceneObjects.filter(o => o !== selectedObject);
             deselectObject();
             updateObjectCountUI();
-            showToast("Objeto eliminado", "info");
+            showToast("Pieza eliminada", "info");
         }
 
         function duplicateSelectedObject() {
@@ -1309,7 +1193,7 @@
             });
 
             selectObject(dupObj);
-            showToast("Objeto duplicado", "success");
+            showToast("Pieza duplicada", "success");
         }
 
         function updateInspectorValues() {
@@ -1415,6 +1299,7 @@
 
             viewport.addEventListener('wheel', onWheel, { passive: false });
 
+            // Touch gesture controls
             viewport.addEventListener('touchstart', onTouchStart, { passive: false });
             window.addEventListener('touchmove', onTouchMove, { passive: false });
             window.addEventListener('touchend', onTouchEnd);
@@ -1438,7 +1323,7 @@
             if (view === 'top') {
                 cameraTheta = 0;
                 cameraPhi = 0.0001; 
-                cameraRadius = 250;
+                cameraRadius = 350;
             } else {
                 cameraTheta = Math.PI / 4;
                 cameraPhi = Math.PI / 3;
@@ -1457,14 +1342,14 @@
         function onWheel(e) {
             if (isTestingDrive) return;
             e.preventDefault();
-            const zoomSpeed = 0.08;
-            cameraRadius = Math.max(15, Math.min(500, cameraRadius + e.deltaY * zoomSpeed));
+            const zoomSpeed = 0.12;
+            cameraRadius = Math.max(15, Math.min(1200, cameraRadius + e.deltaY * zoomSpeed));
             updateCameraPosition();
         }
 
         function changeZoom(delta) {
             if (isTestingDrive) return;
-            cameraRadius = Math.max(15, Math.min(500, cameraRadius + delta));
+            cameraRadius = Math.max(15, Math.min(1200, cameraRadius + delta));
             updateCameraPosition();
         }
 
@@ -1495,7 +1380,7 @@
                             posZ: snapZ
                         });
 
-                        showToast(`Pieza colocada en (${snapX}, ${snapZ})`, "success");
+                        showToast(`Pieza estampada en (${snapX}, ${snapZ})`, "success");
                     }
                     return;
                 }
@@ -1605,8 +1490,56 @@
 
         function onTouchStart(e) {
             if (e.touches.length === 1) {
-                onMouseDown({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, button: 0 });
+                const touch = e.touches[0];
+                touchStartPos = { x: touch.clientX, y: touch.clientY };
+                touchLastPos = { x: touch.clientX, y: touch.clientY };
+                touchIsMoved = false;
+
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                let hitDraggable = false;
+                if (currentMode === 'rotate' && rotationGizmoGroup && rotationGizmoGroup.visible) {
+                    const gizmoHits = raycaster.intersectObjects(rotationGizmoGroup.children);
+                    if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmoRing) {
+                        hitDraggable = true;
+                        activeGizmoAxis = gizmoHits[0].object.userData.axis;
+                        gizmoStartMouse = { x: touch.clientX, y: touch.clientY };
+                        gizmoStartRotation = {
+                            x: selectedObject.rotation.x,
+                            y: selectedObject.rotation.y,
+                            z: selectedObject.rotation.z
+                        };
+                    }
+                }
+
+                if (!hitDraggable && currentMode === 'move' && selectedObject) {
+                    const hits = raycaster.intersectObjects(sceneObjects, true);
+                    if (hits.length > 0) {
+                        let rootObj = hits[0].object;
+                        while (rootObj.parent && rootObj.parent !== scene) rootObj = rootObj.parent;
+                        if (rootObj === selectedObject) {
+                            hitDraggable = true;
+                            isDragging3D = true;
+                            dragPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), rootObj.position);
+                            if (raycaster.ray.intersectPlane(dragPlane, planeIntersection)) {
+                                dragOffset.copy(planeIntersection).sub(rootObj.position);
+                            }
+                        }
+                    }
+                }
+
+                if (!hitDraggable && !activePlacementItem) {
+                    isOrbiting = true;
+                    previousMousePosition = { x: touch.clientX, y: touch.clientY };
+                }
             } else if (e.touches.length === 2) {
+                isOrbiting = false;
+                isDragging3D = false;
+                activeGizmoAxis = null;
                 initialPinchDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
@@ -1616,25 +1549,51 @@
 
         function onTouchMove(e) {
             if (e.touches.length === 1) {
-                onMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+                const touch = e.touches[0];
+                const distMoved = Math.hypot(touch.clientX - touchStartPos.x, touch.clientY - touchStartPos.y);
+                if (distMoved > 8) touchIsMoved = true;
+
+                if (isOrbiting) {
+                    e.preventDefault();
+                    const deltaX = touch.clientX - touchLastPos.x;
+                    const deltaY = touch.clientY - touchLastPos.y;
+
+                    if (isTestingDrive) {
+                        chaseCameraOffset -= deltaX * 0.006;
+                        cameraPhi = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, cameraPhi - deltaY * 0.006));
+                    } else {
+                        cameraTheta -= deltaX * 0.006;
+                        cameraPhi = Math.max(0.0001, Math.min(Math.PI / 2 - 0.05, cameraPhi - deltaY * 0.006));
+                        updateCameraPosition();
+                    }
+                    touchLastPos = { x: touch.clientX, y: touch.clientY };
+                    previousMousePosition = { x: touch.clientX, y: touch.clientY };
+                } else if (activePlacementItem || isDragging3D || activeGizmoAxis) {
+                    onMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
+                }
             } else if (e.touches.length === 2 && initialPinchDistance !== null && !isTestingDrive) {
                 e.preventDefault();
                 const currentDist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
-                const delta = (initialPinchDistance - currentDist) * 0.4;
-                cameraRadius = Math.max(15, Math.min(500, cameraRadius + delta));
+                const delta = (initialPinchDistance - currentDist) * 0.8;
+                cameraRadius = Math.max(15, Math.min(1200, cameraRadius + delta));
                 initialPinchDistance = currentDist;
                 updateCameraPosition();
             }
         }
 
         function onTouchEnd(e) {
-            if (e.touches.length < 2) {
+            if (e.touches.length === 0) {
+                if (!touchIsMoved && !isDragging3D && !activeGizmoAxis) {
+                    onMouseDown({ clientX: touchLastPos.x, clientY: touchLastPos.y, button: 0 });
+                }
+                isOrbiting = false;
+                isDragging3D = false;
+                activeGizmoAxis = null;
                 initialPinchDistance = null;
             }
-            onMouseUp();
         }
 
         // ==========================================
@@ -1644,7 +1603,6 @@
             if (isTestingDrive) return;
             isTestingDrive = true;
 
-            // Ocultar UI Completa de Editor
             document.getElementById('mainHeader').classList.add('hidden');
             document.getElementById('leftSidebar').classList.add('hidden');
             document.getElementById('btnRestoreLeft').classList.add('hidden');
@@ -1658,7 +1616,6 @@
             if (testCarGroup) scene.remove(testCarGroup);
             testCarGroup = new THREE.Group();
 
-            // Chasis
             const bodyGeo = new THREE.BoxGeometry(6, 3, 12);
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.6, roughness: 0.4 });
             const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
@@ -1666,28 +1623,11 @@
             bodyMesh.castShadow = true;
             testCarGroup.add(bodyMesh);
 
-            // Cabina trasera
             const cabinGeo = new THREE.BoxGeometry(5, 2.2, 6);
             const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1e202e, roughness: 0.2 });
             const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
             cabinMesh.position.set(0, 3.8, 1);
             testCarGroup.add(cabinMesh);
-
-            // Faros Frontales (Blancos, Z negativo es adelante)
-            const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            [-2, 2].forEach(x => {
-                const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.2), headMat);
-                head.position.set(x, 1.6, -6);
-                testCarGroup.add(head);
-            });
-
-            // Luces Traseras (Rojas, Z positivo es atrás)
-            const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-            [-2, 2].forEach(x => {
-                const tail = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.2), tailMat);
-                tail.position.set(x, 1.6, 6);
-                testCarGroup.add(tail);
-            });
 
             const startX = selectedObject ? selectedObject.position.x : 0;
             const startZ = selectedObject ? selectedObject.position.z : 0;
@@ -1708,12 +1648,11 @@
 
             if (rotationGizmoGroup) rotationGizmoGroup.visible = false;
 
-            // Ajustar Cámara Chase
             cameraPhi = 1.35;
             cameraRadius = 35;
             chaseCameraOffset = 0;
 
-            showToast("Modo Probar Pista activado (WASD/Flechas | Espacio: Nitro)", "info");
+            showToast("Prueba de conducción activada (WASD / Flechas / Nitro)", "info");
         }
 
         function stopTestDrive() {
@@ -1725,7 +1664,6 @@
                 testCarGroup = null;
             }
 
-            // Restaurar UI del Editor
             document.getElementById('mainHeader').classList.remove('hidden');
             document.getElementById('leftSidebar').classList.remove('hidden');
             document.getElementById('rightSidebar').classList.remove('hidden');
@@ -1835,10 +1773,10 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "burnout_map_3d.json";
+            a.download = "burnout_roblox_map.json";
             a.click();
             URL.revokeObjectURL(url);
-            showToast("Mapa guardado en JSON", "success");
+            showToast("Mapa exportado en formato JSON", "success");
         }
 
         function loadMapJson(event) {
@@ -1849,7 +1787,7 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (!data.objects || !Array.isArray(data.objects)) {
-                        throw new Error("Formato de JSON inválido");
+                        throw new Error("Formato JSON inválido");
                     }
                     [...sceneObjects].forEach(obj => scene.remove(obj));
                     sceneObjects = [];
@@ -1858,7 +1796,7 @@
                     data.objects.forEach(itemData => {
                         const itemDef = ITEM_DEFINITIONS.find(i => i.id === itemData.id) || {
                             id: itemData.id,
-                            name: itemData.name || 'Objeto',
+                            name: itemData.name || 'Pieza',
                             category: itemData.category || 'props',
                             size: itemData.size || [10, 10, 10],
                             color: 0x3b82f6
@@ -1877,21 +1815,18 @@
                         });
                     });
                     updateObjectCountUI();
-                    showToast("Mapa cargado exitosamente", "success");
+                    showToast("Mapa cargado con éxito", "success");
                 } catch (err) {
-                    showToast("Error al cargar JSON: " + err.message, "error");
+                    showToast("Error al importar JSON: " + err.message, "error");
                 }
             };
             reader.readAsText(file);
             event.target.value = '';
         }
 
-        // ==========================================
-        // EXPORTACIÓN A ROBLOX LUAU SCRIPT
-        // ==========================================
         function exportLuauScript() {
-            let scriptContent = `-- Burnout Roblox Studio Map Exporter (Data-Driven V2.6 Clay)
--- Generado automáticamente desde Burnout Studio 3D
+            let scriptContent = `-- Burnout Studio 3D - Exporter para Roblox Studio
+-- Generado automáticamente desde Burnout Studio 3D Editor
 
 local Workspace = game:GetService("Workspace")
 local CollectionService = game:GetService("CollectionService")
@@ -1902,14 +1837,14 @@ mainFolder.Parent = Workspace
 
 local district = mainFolder:FindFirstChild("District")
 if district then 
-    district:ClearAllChildren() -- Limpieza segura para re-exportar
+    district:ClearAllChildren()
 else
     district = Instance.new("Folder")
     district.Name = "District"
     district.Parent = mainFolder
 end
 
-print("🔨 Generando distrito 3D desde mapa data-driven...")
+print("🔨 Generando pista 3D desde Burnout Studio Data...")
 
 `;
 
@@ -1984,7 +1919,7 @@ print("🔨 Generando distrito 3D desde mapa data-driven...")
                 }
             });
 
-            scriptContent += `print("✅ Mapa actualizado en Workspace.BurnoutDemo.District con éxito!")\n`;
+            scriptContent += `print("✅ Pista creada en Workspace.BurnoutDemo.District!")\n`;
 
             const tempInput = document.createElement("textarea");
             tempInput.value = scriptContent;
@@ -1993,7 +1928,7 @@ print("🔨 Generando distrito 3D desde mapa data-driven...")
             document.execCommand("copy");
             document.body.removeChild(tempInput);
 
-            showToast("Código Luau copiado al portapapeles!", "success");
+            showToast("Script Luau copiado al portapapeles", "success");
         }
 
         function showToast(msg, type = 'info') {
