@@ -282,20 +282,11 @@
                 <i class="fa-solid fa-sliders text-base text-burnout-purple"></i>
             </button>
 
-            <!-- HUD Estado Modo -->
-            <div id="statusHud" class="absolute top-4 left-1/2 -translate-x-1/2 clay-panel px-4 sm:px-6 py-2.5 rounded-full text-xs font-mono text-slate-300 flex items-center gap-3 sm:gap-4 pointer-events-none z-10 max-w-[90vw] overflow-hidden">
-                <span class="flex items-center gap-2 whitespace-nowrap">
-                    <span id="modeDot" class="w-2.5 h-2.5 rounded-full bg-burnout-pink animate-pulse shadow-[0_0_8px_#ec4899]"></span>
-                    Modo: <strong id="modeStatusText" class="text-white uppercase font-bold tracking-wide">SELECCIÓN</strong>
-                </span>
-                <div class="w-1 h-4 rounded-full clay-inset shrink-0"></div>
-                <span class="whitespace-nowrap">Objetos: <strong id="objectCountText" class="text-burnout-cyan text-sm">0</strong></span>
-                
-                <span id="placementHudBadge" class="hidden text-amber-300 font-bold bg-amber-900/40 px-3 py-1 rounded-xl pointer-events-auto cursor-pointer flex items-center gap-2 transition hover:bg-amber-800/50" onclick="cancelPlacement()">
-                    <i class="fa-solid fa-stamp text-xs text-amber-400"></i>
-                    <span id="placementItemNameText">Colocando...</span>
-                    <i class="fa-solid fa-circle-xmark text-sm hover:text-white ml-1"></i>
-                </span>
+            <!-- Badge Flotante para Modo Colocación (Solo visible al estampar) -->
+            <div id="placementHudBadge" class="hidden absolute top-4 left-1/2 -translate-x-1/2 clay-panel px-4 sm:px-6 py-2.5 rounded-full text-xs font-mono text-amber-300 font-bold bg-amber-900/40 pointer-events-auto cursor-pointer flex items-center gap-2 transition hover:bg-amber-800/50 z-10 shadow-lg" onclick="cancelPlacement()">
+                <i class="fa-solid fa-stamp text-xs text-amber-400"></i>
+                <span id="placementItemNameText">Colocando...</span>
+                <i class="fa-solid fa-circle-xmark text-sm hover:text-white ml-1"></i>
             </div>
 
             <!-- Botones de Cámara -->
@@ -620,7 +611,8 @@
             document.getElementById('btnModeMove').className = `${baseClass} ${mode === 'move' ? 'clay-btn-cyan' : 'clay-btn'}`;
             document.getElementById('btnModeRotate').className = `${baseClass} ${mode === 'rotate' ? 'clay-btn-purple' : 'clay-btn'}`;
             const modeNames = { 'select': 'SELECCIÓN', 'move': 'MOVER', 'rotate': 'ROTACIÓN' };
-            document.getElementById('modeStatusText').innerText = modeNames[mode] || 'SELECCIÓN';
+            const statusEl = document.getElementById('modeStatusText');
+            if (statusEl) statusEl.innerText = modeNames[mode] || 'SELECCIÓN';
             updateGizmoPositionAndScale();
         }
 
@@ -1608,7 +1600,8 @@
             document.getElementById('btnRestoreLeft').classList.add('hidden');
             document.getElementById('rightSidebar').classList.add('hidden');
             document.getElementById('btnRestoreRight').classList.add('hidden');
-            document.getElementById('statusHud').classList.add('hidden');
+            const statusHud = document.getElementById('statusHud');
+            if (statusHud) statusHud.classList.add('hidden');
             document.getElementById('cameraControlsHud').classList.add('hidden');
 
             document.getElementById('testDriveHud').classList.remove('hidden');
@@ -1667,7 +1660,8 @@
             document.getElementById('mainHeader').classList.remove('hidden');
             document.getElementById('leftSidebar').classList.remove('hidden');
             document.getElementById('rightSidebar').classList.remove('hidden');
-            document.getElementById('statusHud').classList.remove('hidden');
+            const statusHud = document.getElementById('statusHud');
+            if (statusHud) statusHud.classList.remove('hidden');
             document.getElementById('cameraControlsHud').classList.remove('hidden');
             document.getElementById('testDriveHud').classList.add('hidden');
 
